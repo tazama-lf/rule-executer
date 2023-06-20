@@ -1,0 +1,7 @@
+coverage
+templates
+build
+**/node_modules
+*.spec.ts
+__tests__
+setup.jest.js
