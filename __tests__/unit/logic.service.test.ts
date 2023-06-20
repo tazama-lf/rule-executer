@@ -10,7 +10,7 @@ import {
   NetworkMap,
   Pacs002,
 } from '@frmscoe/frms-coe-lib/lib/interfaces';
-import { handleTransaction } from 'rule';
+import { handleTransaction } from 'rule/lib';
 import { execute } from '../../src/controllers/execute';
 import { Context } from 'koa';
 import {
