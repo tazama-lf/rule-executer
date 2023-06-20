@@ -1,7 +1,7 @@
 import { Context } from 'koa';
 // import { LoggerService } from '../services/logger.service';
 import apm from 'elastic-apm-node';
-import { handleTransaction } from 'rule';
+import { handleTransaction } from 'rule/lib';
 import { config } from '../config';
 import axios from 'axios';
 import determineOutcome from '../helpers/determineOutcome';
