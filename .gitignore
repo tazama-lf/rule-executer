@@ -87,6 +87,10 @@ web_modules/
 .next
 out
 
+# Node build output
+build
+lib
+
 # Nuxt.js build / generate output
 .nuxt
 dist
