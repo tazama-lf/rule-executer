@@ -22,8 +22,9 @@ The Jenkins job will have to call a packaged library. So the `rule` in the packa
 Furthermore, from Jenkins we'll also need to modify the rule-executer-deploy.yml file, to give the processor the correct name, as well as make sure it points to your library (note the above install / uninstall SED functions also in below script):
 
 ```
-// Add below line to give the correct name for your Rule:
+// Modify below lines to give the correct name for your Rule:
 sh 'sed -i \'s/off-rule-executer/off-rule-901/g\' rule-executer-deploy.yml'
+sh 'sed -i \'s/RULE_NAME="901"/RULE_NAME="901"/g\' Dockerfile'
 
 withNPM(npmrcConfig: 'guid') {
   // Modify below line to give the correct library for your Rule (eg, change rule-901 to whatever your rule package is called):
