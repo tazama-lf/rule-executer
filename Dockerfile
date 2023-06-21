@@ -42,8 +42,9 @@ ENV read_timeout="15s"
 
 ENV REST_PORT=3000
 ENV FUNCTION_NAME="rule-executer-rel-1-0-0"
-ENV NODE_ENV="production"
 ENV RULE_VERSION="1.0.0"
+ENV RULE_NAME="901"
+ENV NODE_ENV="production"
 
 ENV APM_LOGGING=true
 ENV APM_URL=http://apm-server.development:8200
