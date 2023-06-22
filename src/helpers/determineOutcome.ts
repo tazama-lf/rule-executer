@@ -5,29 +5,22 @@ const determineOutcome = (
   ruleConfig: RuleConfig,
   ruleResult: RuleResult,
 ): RuleResult => {
-  const threshold = ruleConfig.config.timeframes[0].threshold;
-
-  const trueSubRule = ruleConfig.config.bands.find((r) => r.outcome === true);
-  const falseSubRule = ruleConfig.config.bands.find((r) => r.outcome === false);
-
-  if (!trueSubRule?.lowerLimit) return ruleResult;
-  if (!falseSubRule?.upperLimit) return ruleResult;
-
-  if (value && value > 0) {
-    if (trueSubRule && value >= trueSubRule.lowerLimit) {
-      ruleResult.result = trueSubRule.outcome;
-      ruleResult.reason = trueSubRule.reason;
-      ruleResult.subRuleRef = trueSubRule.subRuleRef;
-    } else if (falseSubRule && value < falseSubRule.upperLimit) {
-      ruleResult.result = falseSubRule.outcome;
-      ruleResult.reason = falseSubRule.reason;
-      ruleResult.subRuleRef = falseSubRule.subRuleRef;
+  if (value || value === 0) {
+    for (const band of ruleConfig.config.bands) {
+      if (
+        (!band.lowerLimit || value >= band.lowerLimit) &&
+        (!band.upperLimit || value < band.upperLimit)
+      ) {
+        ruleResult.subRuleRef = band.subRuleRef;
+        ruleResult.result = band.outcome;
+        ruleResult.reason = band.reason;
+        break;
+      }
     }
-  } else if (falseSubRule) {
-    ruleResult.result = falseSubRule.outcome;
-    ruleResult.reason = falseSubRule.reason;
-    ruleResult.subRuleRef = falseSubRule.subRuleRef;
-  }
+  } else
+    throw new Error(
+      'Value provided undefined, so cannot determine rule outcome',
+    );
   return ruleResult;
 };
 
