@@ -71,7 +71,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
 
   try {
     if (!ruleConfig) {
-      throw new Error('Rule processor configuration invalid');
+      throw new Error(`Rule ${ruleRes.id} processor configuration invalid`);
     }
     const span = apm.startSpan('handleTransaction');
     const ruleResult = await handleTransaction(
