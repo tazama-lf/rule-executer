@@ -59,7 +59,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
         }
       }
     }
-    return '';
+    throw new Error(`Rule ${ruleRes.id} not found in network map`);
   })();
 
   const sRuleConfig = await databaseManager.getRuleConfig(
