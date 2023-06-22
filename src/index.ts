@@ -72,6 +72,7 @@ const runServer = () => {
 export const init = async () => {
   const manager = await CreateDatabaseManager(databaseManagerConfig);
   databaseManager = manager;
+  loggerService.log(JSON.stringify(databaseManager.isReadyCheck()));
 };
 
 process.on('uncaughtException', (err) => {
