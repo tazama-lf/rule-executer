@@ -12,6 +12,7 @@ import {
   RuleConfig,
   DataCache,
 } from '@frmscoe/frms-coe-lib/lib/interfaces';
+import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
 
 import { LoggerService } from '@frmscoe/frms-coe-lib';
 
@@ -46,31 +47,32 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
     desc: '',
   };
 
-  const _ = request.networkMap.messages.map((messages) => {
-    return messages.channels.map((channels) => {
-      return channels.typologies.map((typologies) => {
-        /* eslint-disable array-callback-return */
-        return typologies.rules.map((rule) => {
-          if (rule.id === ruleRes.id) {
-            ruleRes.cfg = rule.cfg;
-            return ruleRes;
+  ruleRes.cfg = (() => {
+    for (const messages of request.networkMap.messages) {
+      for (const channels of messages.channels) {
+        for (const typologies of channels.typologies) {
+          for (const rule of typologies.rules) {
+            if (rule.id === ruleRes.id) {
+              return rule.cfg;
+            }
           }
-        });
-      });
-    });
-  });
+        }
+      }
+    }
+    return '';
+  })();
 
   const sRuleConfig = await databaseManager.getRuleConfig(
     ruleRes.id,
     ruleRes.cfg,
   );
 
-  const ruleConfig: RuleConfig = Object.assign(
-    {},
-    sRuleConfig && sRuleConfig[0] && sRuleConfig[0][0],
-  );
+  const ruleConfig = unwrap<RuleConfig>(sRuleConfig);
 
   try {
+    if (!ruleConfig) {
+      throw new Error('Rule processor configuration invalid');
+    }
     const span = apm.startSpan('handleTransaction');
     const ruleResult = await handleTransaction(
       request,
