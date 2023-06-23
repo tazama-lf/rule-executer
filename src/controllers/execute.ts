@@ -78,6 +78,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       transaction: request.transaction,
       networkSubMap: request.networkMap,
     };
+    ctx.status = 500;
     return ctx;
   }
 
