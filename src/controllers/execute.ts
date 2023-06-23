@@ -12,7 +12,8 @@ import {
   RuleConfig,
   DataCache,
 } from '@frmscoe/frms-coe-lib/lib/interfaces';
-
+import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
+import { getReadableDescription } from '@frmscoe/frms-coe-lib/lib/helpers/RuleConfig';
 import { LoggerService } from '@frmscoe/frms-coe-lib';
 
 export const execute = async (ctx: Context): Promise<void | Context> => {
@@ -41,34 +42,47 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
     id: `${config.ruleName}@${config.ruleVersion}`,
     cfg: '',
     result: false,
-    subRuleRef: '.00',
-    reason: '',
+    subRuleRef: '.err',
+    reason: 'Unhandled rule result outcome',
     desc: '',
   };
 
-  const _ = request.networkMap.messages.map((messages) => {
-    return messages.channels.map((channels) => {
-      return channels.typologies.map((typologies) => {
-        /* eslint-disable array-callback-return */
-        return typologies.rules.map((rule) => {
-          if (rule.id === ruleRes.id) {
-            ruleRes.cfg = rule.cfg;
-            return ruleRes;
+  ruleRes.cfg = (() => {
+    for (const messages of request.networkMap.messages) {
+      for (const channels of messages.channels) {
+        for (const typologies of channels.typologies) {
+          for (const rule of typologies.rules) {
+            if (rule.id === ruleRes.id) {
+              return rule.cfg;
+            }
           }
-        });
-      });
-    });
-  });
+        }
+      }
+    }
+    return '';
+  })();
 
   const sRuleConfig = await databaseManager.getRuleConfig(
     ruleRes.id,
     ruleRes.cfg,
   );
 
-  const ruleConfig: RuleConfig = Object.assign(
-    {},
-    sRuleConfig && sRuleConfig[0] && sRuleConfig[0][0],
-  );
+  const ruleConfig = unwrap<RuleConfig>(sRuleConfig);
+
+  if (!ruleConfig) {
+    ctx.body = {
+      ruleResult: {
+        ...ruleRes,
+        reason: 'Rule processor configuration not retrievable',
+      },
+      transaction: request.transaction,
+      networkSubMap: request.networkMap,
+    };
+    ctx.status = 500;
+    return ctx;
+  }
+
+  ruleRes.desc = getReadableDescription(ruleConfig);
 
   try {
     const span = apm.startSpan('handleTransaction');

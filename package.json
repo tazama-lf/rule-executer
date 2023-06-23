@@ -7,13 +7,13 @@
   "scripts": {
     "dev": "nodemon",
     "build": "tsc --project tsconfig.json",
-    "cleanup": "rm -rf build template jest.config.js jest.config.js.map node_modules yarn.lock",
+    "cleanup": "rm -rf build template jest.config.js jest.config.js.map node_modules package-lock.json",
     "start": "node build/index",
     "start:dev": "env $(cat .env.template) nodemon",
-    "fix": "yarn fix:prettier && yarn fix:eslint",
+    "fix": "npm run fix:prettier && npm run fix:eslint",
     "fix:eslint": "eslint --fix \"**/*.ts\"",
     "fix:prettier": "prettier --write \"**/*.ts\"",
-    "lint": "yarn lint:eslint && yarn lint:prettier",
+    "lint": "npm run lint:eslint && npm run lint:prettier",
     "lint:eslint": "eslint \"**/*.ts\"",
     "lint:prettier": "prettier --check \"**/*.ts\"",
     "prepare": "husky install",
@@ -40,7 +40,7 @@
     "koa-router": "12.0.0",
     "log4js": "^6.9.1",
     "node-cache": "^5.1.2",
-    "rule": "npm:@frmscoe/rule-901@^1.0.0"
+    "rule": "npm:@frmscoe/rule-901@^1.0.1"
   },
   "devDependencies": {
     "@types/babel__traverse": "^7.20.1",
