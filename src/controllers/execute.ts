@@ -15,15 +15,19 @@ import {
 import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
 import { getReadableDescription } from '@frmscoe/frms-coe-lib/lib/helpers/RuleConfig';
 import { LoggerService } from '@frmscoe/frms-coe-lib';
+import { responseCallback } from '@frmscoe/frms-coe-startup-lib/lib/types/onMessageFunction';
 
-export const execute = async (ctx: Context): Promise<void | Context> => {
+export const execute = async (
+  reqObj: string,
+  handleResponse: responseCallback,
+): Promise<void> => {
   let request!: RuleRequest;
   let dataCache: DataCache;
   loggerService.log('Start - Handle execute request');
 
   // Get required information from the incoming request
   try {
-    const message = ctx.request.body ?? JSON.parse('');
+    const message = JSON.parse(reqObj);
     request = {
       transaction: message.transaction,
       networkMap: message.networkMap,
@@ -33,9 +37,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
     const failMessage = 'Failed to parse execution request.';
     loggerService.error(failMessage, err, 'executeController');
     loggerService.log('End - Handle execute request');
-    ctx.body = `${failMessage} Details: \r\n${err}`;
-    ctx.status = 500;
-    return ctx;
+    return;
   }
 
   let ruleRes: RuleResult = {
@@ -79,14 +81,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       subRuleRef: '.err',
       reason: (error as Error).message,
     };
-    ctx.body = {
-      ruleResult: ruleRes,
-      transaction: request.transaction,
-      networkSubMap: request.networkMap,
-    };
-    ctx.status = 500;
     await sendRuleResult(ruleRes, request, loggerService);
-    return ctx;
   }
   let ruleResult: RuleResult = { ...ruleRes };
   const span = apm.startSpan('handleTransaction');
@@ -96,19 +91,11 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       determineOutcome,
       ruleRes,
       loggerService,
-      ruleConfig,
+      ruleConfig!,
       databaseManager,
       dataCache,
     );
     span?.end();
-    const resultMessage = `Result for Rule ${config.ruleName}@${config.ruleVersion}, is ${ruleResult.result}`;
-    ctx.body = {
-      message: resultMessage,
-      ruleResult,
-      transaction: request.transaction,
-      networkSubMap: request.networkMap,
-    };
-    ctx.status = 200;
   } catch (error) {
     span?.end();
     const failMessage = 'Failed to process execution request.';
@@ -118,12 +105,6 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       subRuleRef: '.err',
       reason: (error as Error).message,
     };
-    ctx.body = {
-      ruleResult: ruleRes,
-      transaction: request.transaction,
-      networkSubMap: request.networkMap,
-    };
-    ctx.status = 500;
   } finally {
     loggerService.log('End - Handle execute request');
   }
@@ -139,15 +120,10 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       reason: (error as Error).message,
       result: false,
     };
-    ctx.body = {
-      ruleResult: ruleRes,
-      transaction: request.transaction,
-      networkSubMap: request.networkMap,
-    };
-    ctx.status = 500;
   }
 
-  return ctx;
+  await handleResponse(JSON.stringify(ruleRes));
+  
 };
 
 const sendRuleResult = async (

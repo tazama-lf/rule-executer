@@ -1,12 +1,13 @@
 import { config } from './config';
 import NodeCache from 'node-cache';
-import App from './app';
+import { init } from '@frmscoe/frms-coe-startup-lib';
 import apm from 'elastic-apm-node';
 import {
   CreateDatabaseManager,
   DatabaseManagerInstance,
   LoggerService,
 } from '@frmscoe/frms-coe-lib';
+import { execute } from './controllers/execute';
 
 export const loggerService: LoggerService = new LoggerService();
 
@@ -57,19 +58,19 @@ const databaseManagerConfig = {
 
 let databaseManager: DatabaseManagerInstance<typeof databaseManagerConfig>;
 
-const runServer = () => {
-  /**
-   * KOA Rest Server
-   */
-  const app = new App();
-
-  app.listen(config.restPort, () => {
-    loggerService.log(`Rest Server listening on port ${config.restPort}`);
-  });
-  return app;
+const runServer = async () => {
+  for (let retryCount = 0; retryCount < 10; retryCount++) {
+    console.log(`Connecting to nats server...`);
+    if (!(await init(execute))) {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    } else {
+      console.log(`Connected to nats`);
+      break;
+    }
+  }
 };
 
-export const init = async () => {
+export const initializeDB = async () => {
   const manager = await CreateDatabaseManager(databaseManagerConfig);
   databaseManager = manager;
   loggerService.log(JSON.stringify(databaseManager.isReadyCheck()));
@@ -87,7 +88,7 @@ try {
   if (process.env.NODE_ENV !== 'test') {
     runServer();
     (async () => {
-      await init();
+      await initializeDB();
     })();
   }
 } catch (err) {
