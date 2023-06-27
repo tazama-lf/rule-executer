@@ -38,7 +38,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
     return ctx;
   }
 
-  const ruleRes: RuleResult = {
+  let ruleRes: RuleResult = {
     id: `${config.ruleName}@${config.ruleVersion}`,
     cfg: '',
     result: false,
@@ -62,31 +62,36 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
     return '';
   })();
 
-  const sRuleConfig = await databaseManager.getRuleConfig(
-    ruleRes.id,
-    ruleRes.cfg,
-  );
-
-  const ruleConfig = unwrap<RuleConfig>(sRuleConfig);
-
-  if (!ruleConfig) {
+  let ruleConfig: RuleConfig | undefined;
+  try {
+    if (!ruleRes.cfg) throw new Error('Rule not found in network map');
+    const sRuleConfig = await databaseManager.getRuleConfig(
+      ruleRes.id,
+      ruleRes.cfg,
+    );
+    ruleConfig = unwrap<RuleConfig>(sRuleConfig);
+    if (!ruleConfig)
+      throw new Error('Rule processor configuration not retrievable');
+    ruleRes.desc = getReadableDescription(ruleConfig);
+  } catch (error) {
+    ruleRes = {
+      ...ruleRes,
+      subRuleRef: '.err',
+      reason: (error as Error).message,
+    };
     ctx.body = {
-      ruleResult: {
-        ...ruleRes,
-        reason: 'Rule processor configuration not retrievable',
-      },
+      ruleResult: ruleRes,
       transaction: request.transaction,
       networkSubMap: request.networkMap,
     };
     ctx.status = 500;
+    await sendRuleResult(ruleRes, request, loggerService);
     return ctx;
   }
-
-  ruleRes.desc = getReadableDescription(ruleConfig);
-
+  let ruleResult: RuleResult = { ...ruleRes };
+  const span = apm.startSpan('handleTransaction');
   try {
-    const span = apm.startSpan('handleTransaction');
-    const ruleResult = await handleTransaction(
+    ruleResult = await handleTransaction(
       request,
       determineOutcome,
       ruleRes,
@@ -96,7 +101,6 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       dataCache,
     );
     span?.end();
-    await sendRuleResult(ruleResult, request, loggerService);
     const resultMessage = `Result for Rule ${config.ruleName}@${config.ruleVersion}, is ${ruleResult.result}`;
     ctx.body = {
       message: resultMessage,
@@ -105,16 +109,45 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       networkSubMap: request.networkMap,
     };
     ctx.status = 200;
-    return ctx;
-  } catch (err) {
+  } catch (error) {
+    span?.end();
     const failMessage = 'Failed to process execution request.';
-    loggerService.error(failMessage, err, 'executeController');
-    ctx.body = `${failMessage} Details: \r\n${err}`;
+    loggerService.error(failMessage, error, 'executeController');
+    ruleRes = {
+      ...ruleRes,
+      subRuleRef: '.err',
+      reason: (error as Error).message,
+    };
+    ctx.body = {
+      ruleResult: ruleRes,
+      transaction: request.transaction,
+      networkSubMap: request.networkMap,
+    };
     ctx.status = 500;
-    return ctx;
   } finally {
     loggerService.log('End - Handle execute request');
   }
+
+  try {
+    await sendRuleResult(ruleResult, request, loggerService);
+  } catch (error) {
+    const failMessage = 'Failed to send to Typology Processor.';
+    loggerService.error(failMessage, error, 'executeController');
+    ruleRes = {
+      ...ruleRes,
+      subRuleRef: '.err',
+      reason: (error as Error).message,
+      result: false,
+    };
+    ctx.body = {
+      ruleResult: ruleRes,
+      transaction: request.transaction,
+      networkSubMap: request.networkMap,
+    };
+    ctx.status = 500;
+  }
+
+  return ctx;
 };
 
 const sendRuleResult = async (
