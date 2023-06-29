@@ -75,7 +75,7 @@ describe('Logic Service', () => {
         return Promise.resolve();
       };
 
-      const res = await execute(JSON.stringify(expectedReq), handleResponse);
+      const res = await execute(expectedReq as any, handleResponse);
       expect(resString).toBeTruthy();
     });
   });
