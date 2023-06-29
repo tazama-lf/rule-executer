@@ -28,7 +28,6 @@ const databaseManagerConfig = {
     password: config.redis.auth,
     port: config.redis.port,
   },
-
   transactionHistory: {
     certPath: config.dbCertPath,
     databaseName: config.dbName,
@@ -60,11 +59,12 @@ let databaseManager: DatabaseManagerInstance<typeof databaseManagerConfig>;
 
 const runServer = async () => {
   for (let retryCount = 0; retryCount < 10; retryCount++) {
-    console.log(`Connecting to nats server...`);
+    loggerService.log(`Connecting to nats server...`);
     if (!(await init(execute))) {
+      loggerService.warn(`Unable to connect, retry count: ${retryCount}`);
       await new Promise((resolve) => setTimeout(resolve, 5000));
     } else {
-      console.log(`Connected to nats`);
+      loggerService.log(`Connected to nats`);
       break;
     }
   }

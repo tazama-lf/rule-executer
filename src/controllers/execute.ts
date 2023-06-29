@@ -23,11 +23,13 @@ export const execute = async (
 ): Promise<void> => {
   let request!: RuleRequest;
   let dataCache: DataCache;
+  const responseSubject = `RuleResponse${config.ruleName}`;
   loggerService.log('Start - Handle execute request');
 
   // Get required information from the incoming request
   try {
-    const message = JSON.parse(reqObj);
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const message = reqObj as any; // JSON.parse(reqObj);
     request = {
       transaction: message.transaction,
       networkMap: message.networkMap,
@@ -81,7 +83,15 @@ export const execute = async (
       subRuleRef: '.err',
       reason: (error as Error).message,
     };
-    await sendRuleResult(ruleRes, request, loggerService);
+    await handleResponse(
+      JSON.stringify({
+        transaction: request.transaction,
+        ruleRes,
+        networkMap: request.networkMap,
+      }),
+      [responseSubject],
+    );
+    return;
   }
   let ruleResult: RuleResult = { ...ruleRes };
   const span = apm.startSpan('handleTransaction');
@@ -110,7 +120,15 @@ export const execute = async (
   }
 
   try {
-    await sendRuleResult(ruleResult, request, loggerService);
+    await handleResponse(
+      JSON.stringify({
+        transaction: request.transaction,
+        ruleResult,
+        networkMap: request.networkMap,
+      }),
+      [responseSubject],
+    );
+    // await sendRuleResult(ruleResult, request, loggerService);
   } catch (error) {
     const failMessage = 'Failed to send to Typology Processor.';
     loggerService.error(failMessage, error, 'executeController');
@@ -120,34 +138,5 @@ export const execute = async (
       reason: (error as Error).message,
       result: false,
     };
-  }
-
-  await handleResponse(JSON.stringify(ruleRes));
-  
-};
-
-const sendRuleResult = async (
-  ruleResult: RuleResult,
-  req: RuleRequest,
-  loggerService: LoggerService,
-) => {
-  const toSend = {
-    transaction: req.transaction,
-    ruleResult,
-    networkMap: req.networkMap,
-  };
-  for (const channel of req.networkMap.messages[0].channels) {
-    for (const typology of channel.typologies) {
-      if (typology.rules.some((rule) => rule.id === ruleResult.id)) {
-        const typologyResponse = await axios.post(
-          `${typology.host}/execute`,
-          toSend,
-        );
-        if (typologyResponse.status !== 200) {
-          loggerService.error(typologyResponse.data);
-        }
-        return;
-      }
-    }
   }
 };
