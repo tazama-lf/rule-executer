@@ -72,7 +72,6 @@ describe('Logic Service', () => {
           loggerService: LoggerService,
           ruleConfig: RuleConfig,
           databaseManager: DatabaseManagerInstance<ManagerConfig>,
-          dataCache: DataCache,
         ): Promise<RuleResult> => {
           return Promise.resolve(ruleRes);
         },
