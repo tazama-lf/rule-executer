@@ -1,5 +1,4 @@
 import { Context } from 'koa';
-// import { LoggerService } from '../services/logger.service';
 import apm from 'elastic-apm-node';
 import { handleTransaction } from 'rule/lib';
 import { config } from '../config';
@@ -10,7 +9,6 @@ import {
   RuleResult,
   RuleRequest,
   RuleConfig,
-  DataCache,
 } from '@frmscoe/frms-coe-lib/lib/interfaces';
 import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
 import { getReadableDescription } from '@frmscoe/frms-coe-lib/lib/helpers/RuleConfig';
@@ -18,7 +16,6 @@ import { LoggerService } from '@frmscoe/frms-coe-lib';
 
 export const execute = async (ctx: Context): Promise<void | Context> => {
   let request!: RuleRequest;
-  let dataCache: DataCache;
   loggerService.log('Start - Handle execute request');
 
   // Get required information from the incoming request
@@ -27,8 +24,8 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
     request = {
       transaction: message.transaction,
       networkMap: message.networkMap,
+      DataCache: message.DataCache,
     };
-    dataCache = message.DataCache;
   } catch (err) {
     const failMessage = 'Failed to parse execution request.';
     loggerService.error(failMessage, err, 'executeController');
@@ -83,6 +80,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       ruleResult: ruleRes,
       transaction: request.transaction,
       networkSubMap: request.networkMap,
+      DataCache: request.DataCache,
     };
     ctx.status = 500;
     await sendRuleResult(ruleRes, request, loggerService);
@@ -98,7 +96,6 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       loggerService,
       ruleConfig,
       databaseManager,
-      dataCache,
     );
     span?.end();
     const resultMessage = `Result for Rule ${config.ruleName}@${config.ruleVersion}, is ${ruleResult.result}`;
@@ -107,6 +104,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       ruleResult,
       transaction: request.transaction,
       networkSubMap: request.networkMap,
+      DataCache: request.DataCache,
     };
     ctx.status = 200;
   } catch (error) {
@@ -122,6 +120,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       ruleResult: ruleRes,
       transaction: request.transaction,
       networkSubMap: request.networkMap,
+      DataCache: request.DataCache,
     };
     ctx.status = 500;
   } finally {
@@ -143,6 +142,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       ruleResult: ruleRes,
       transaction: request.transaction,
       networkSubMap: request.networkMap,
+      DataCache: request.DataCache,
     };
     ctx.status = 500;
   }
@@ -159,6 +159,7 @@ const sendRuleResult = async (
     transaction: req.transaction,
     ruleResult,
     networkMap: req.networkMap,
+    DataCache: req.DataCache,
   };
   for (const channel of req.networkMap.messages[0].channels) {
     for (const typology of channel.typologies) {
