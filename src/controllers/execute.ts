@@ -96,7 +96,6 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       loggerService,
       ruleConfig,
       databaseManager,
-      request.DataCache,
     );
     span?.end();
     const resultMessage = `Result for Rule ${config.ruleName}@${config.ruleVersion}, is ${ruleResult.result}`;
