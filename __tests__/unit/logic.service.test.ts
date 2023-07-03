@@ -6,7 +6,7 @@ import {
   RuleResult,
   RuleRequest,
   RuleConfig,
-  DataCache,
+  type DataCache,
   NetworkMap,
   Pacs002,
 } from '@frmscoe/frms-coe-lib/lib/interfaces';
@@ -31,6 +31,12 @@ const getMockRequest = () => {
       new NetworkMap(),
       JSON.parse(
         '{"_key":"26345403","_id":"networkConfiguration/26345403","_rev":"_cxc-1vO---","messages":[{"id":"001@1.0","host":"http://openfaas:8080","cfg":"1.0","txTp":"pain.001.001.11","channels":[{"id":"001@1.0","host":"http://openfaas:8080","cfg":"1.0","typologies":[{"id":"028@1.0","host":"https://frmfaas.sybrin.com/function/off-typology-processor","cfg":"028@1.0","rules":[{"id":"017@1.0.0","host":"http://openfaas:8080","cfg":"1.0.0"},{"id":"028@1.0","host":"http://openfaas:8080","cfg":"1.0"}]},{"id":"029@1.0","host":"https://frmfaas.sybrin.com/function/off-typology-processor","cfg":"029@1.0","rules":[{"id":"003@1.0","host":"http://openfaas:8080","cfg":"1.0"},{"id":"005@1.0","host":"http://openfaas:8080","cfg":"1.0"}]}]},{"id":"002@1.0","host":"http://openfaas:8080","cfg":"1.0","typologies":[{"id":"030@1.0","host":"https://frmfaas.sybrin.com/function/off-typology-processor","cfg":"030@1.0","rules":[{"id":"003@1.0","host":"http://openfaas:8080","cfg":"1.0"},{"id":"006@1.0","host":"http://openfaas:8080","cfg":"1.0"}]},{"id":"031@1.0","host":"https://frmfaas.sybrin.com/function/off-typology-processor","cfg":"031@1.0","rules":[{"id":"003@1.0","host":"http://openfaas:8080","cfg":"1.0"},{"id":"007@1.0","host":"http://openfaas:8080","cfg":"1.0"}]}]}]}]}',
+      ),
+    ),
+    DataCache: Object.assign(
+      {},
+      JSON.parse(
+        '{"dbtrId": "dbtr_11f7c7310fb84649b9fe52672d3e2047","cdtrId": "cdtr_7d030a7af12f491c81e7d61b05ad2fb6","dbtrAcctId": "dbtrAcct_4f55ee2369d0480fb246ce23267baa84","cdtrAcctId": "cdtrAcct_c231f4170a4746e0a03674cc1e2f6487"}',
       ),
     ),
   };
