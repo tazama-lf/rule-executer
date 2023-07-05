@@ -18,7 +18,7 @@ import { LoggerService } from '@frmscoe/frms-coe-lib';
 import { responseCallback } from '@frmscoe/frms-coe-startup-lib/lib/types/onMessageFunction';
 
 export const execute = async (
-  reqObj: string,
+  reqObj: unknown,
   handleResponse: responseCallback,
 ): Promise<void> => {
   let request!: RuleRequest;
