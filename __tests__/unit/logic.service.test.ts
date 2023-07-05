@@ -70,8 +70,8 @@ describe('Logic Service', () => {
     it('should respond with rule result of true for happy path', async () => {
       const expectedReq = getMockRequest();
       let resString: string = '';
-      const handleResponse = (reponse: string): Promise<void> => {
-        resString = reponse;
+      const handleResponse = (reponse: unknown): Promise<void> => {
+        resString = reponse as string;
         return Promise.resolve();
       };
 
