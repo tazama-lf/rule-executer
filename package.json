@@ -29,8 +29,8 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "@frmscoe/frms-coe-lib": "^0.1.25",
     "@frmscoe/frms-coe-startup-lib": "^0.0.8",
+    "@frmscoe/frms-coe-lib": "^0.1.27",
     "@log4js-node/logstash-http": "^1.1.0",
     "arangojs": "^8.3.0",
     "axios": "^1.4.0",
@@ -41,7 +41,7 @@
     "koa-router": "12.0.0",
     "log4js": "^6.9.1",
     "node-cache": "^5.1.2",
-    "rule": "npm:@frmscoe/rule-901@^1.0.1"
+    "rule": "npm:@frmscoe/rule-901@^1.0.2"
   },
   "devDependencies": {
     "@types/babel__traverse": "^7.20.1",

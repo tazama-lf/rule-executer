@@ -1,21 +1,17 @@
-import { Context } from 'koa';
-// import { LoggerService } from '../services/logger.service';
+import { getReadableDescription } from '@frmscoe/frms-coe-lib/lib/helpers/RuleConfig';
+import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
+import {
+  DataCache,
+  RuleConfig,
+  RuleRequest,
+  RuleResult,
+} from '@frmscoe/frms-coe-lib/lib/interfaces';
+import { responseCallback } from '@frmscoe/frms-coe-startup-lib/lib/types/onMessageFunction';
 import apm from 'elastic-apm-node';
 import { handleTransaction } from 'rule/lib';
+import { databaseManager, loggerService } from '..';
 import { config } from '../config';
-import axios from 'axios';
 import determineOutcome from '../helpers/determineOutcome';
-import { loggerService, databaseManager } from '..';
-import {
-  RuleResult,
-  RuleRequest,
-  RuleConfig,
-  DataCache,
-} from '@frmscoe/frms-coe-lib/lib/interfaces';
-import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
-import { getReadableDescription } from '@frmscoe/frms-coe-lib/lib/helpers/RuleConfig';
-import { LoggerService } from '@frmscoe/frms-coe-lib';
-import { responseCallback } from '@frmscoe/frms-coe-startup-lib/lib/types/onMessageFunction';
 
 export const execute = async (
   reqObj: unknown,
@@ -29,12 +25,12 @@ export const execute = async (
   // Get required information from the incoming request
   try {
     /* eslint-disable @typescript-eslint/no-explicit-any */
-    const message = reqObj as any; // JSON.parse(reqObj);
+    const message = reqObj as any;
     request = {
       transaction: message.transaction,
       networkMap: message.networkMap,
+      DataCache: message.DataCache,
     };
-    dataCache = message.DataCache;
   } catch (err) {
     const failMessage = 'Failed to parse execution request.';
     loggerService.error(failMessage, err, 'executeController');
@@ -103,7 +99,6 @@ export const execute = async (
       loggerService,
       ruleConfig!,
       databaseManager,
-      dataCache,
     );
     span?.end();
   } catch (error) {
