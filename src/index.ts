@@ -88,9 +88,9 @@ process.on('unhandledRejection', (err) => {
 
 try {
   if (process.env.NODE_ENV !== 'test') {
-    runServer();
     (async () => {
       await initializeDB();
+      runServer();
     })();
   }
 } catch (err) {

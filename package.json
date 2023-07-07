@@ -30,7 +30,7 @@
   "license": "ISC",
   "dependencies": {
     "@frmscoe/frms-coe-lib": "^0.1.27",
-    "startup": "file:../frms-coe-startup-lib/lib",
+    "@frmscoe/frms-coe-startup-lib": "^0.0.11",
     "@log4js-node/logstash-http": "^1.1.0",
     "arangojs": "^8.3.0",
     "axios": "^1.4.0",
@@ -41,7 +41,8 @@
     "koa-router": "12.0.0",
     "log4js": "^6.9.1",
     "node-cache": "^5.1.2",
-    "rule": "npm:@frmscoe/rule-901@^1.0.2"
+    "rule": "npm:@frmscoe/rule-901@^1.0.2",
+    "startup": "file:../frms-coe-startup-lib/lib"
   },
   "devDependencies": {
     "@types/babel__traverse": "^7.20.1",
