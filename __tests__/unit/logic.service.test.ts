@@ -1,4 +1,4 @@
-import { initializeDB, runServer } from '../../src';
+import { initializeDB, runServer, server } from '../../src';
 import { config } from '../../src/config';
 import ioredis from 'ioredis-mock';
 import {
@@ -16,6 +16,7 @@ import {
   LoggerService,
   ManagerConfig,
 } from '@frmscoe/frms-coe-lib';
+import { StartupFactory } from 'startup';
 
 const getMockRequest = () => {
   const quote: RuleRequest = {
@@ -43,6 +44,7 @@ const getMockRequest = () => {
 
 beforeAll(async () => {
   await initializeDB();
+  runServer();
 });
 
 afterAll(() => {});
@@ -75,12 +77,12 @@ describe('Logic Service', () => {
     it('should respond with rule result of true for happy path', async () => {
       const expectedReq = getMockRequest();
       let resString: string = '';
-      const handleResponse = (reponse: unknown): Promise<void> => {
+      server.handleResponse = (reponse: unknown): Promise<void> => {
         resString = reponse as string;
         return Promise.resolve();
       };
 
-      const res = await execute(expectedReq as any, handleResponse);
+      const res = await execute(expectedReq as any);
       expect(resString).toBeTruthy();
     });
   });

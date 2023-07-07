@@ -59,16 +59,17 @@ let databaseManager: DatabaseManagerInstance<typeof databaseManagerConfig>;
 
 const runServer = async () => {
   server = new StartupFactory();
-  for (let retryCount = 0; retryCount < 10; retryCount++) {
-    loggerService.log(`Connecting to nats server...`);
-    if (!(await server.init(execute))) {
-      loggerService.warn(`Unable to connect, retry count: ${retryCount}`);
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-    } else {
-      loggerService.log(`Connected to nats`);
-      break;
+  if (config.nodeEnv !== 'test')
+    for (let retryCount = 0; retryCount < 10; retryCount++) {
+      loggerService.log(`Connecting to nats server...`);
+      if (!(await server.init(execute))) {
+        loggerService.warn(`Unable to connect, retry count: ${retryCount}`);
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      } else {
+        loggerService.log(`Connected to nats`);
+        break;
+      }
     }
-  }
 };
 
 export const initializeDB = async () => {
