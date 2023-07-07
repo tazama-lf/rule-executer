@@ -1,6 +1,6 @@
 # Stage 1: Build stage
-FROM --platform=${TARGETPLATFORM:-linux/amd64} ghcr.io/openfaas/of-watchdog:0.8.4 as watchdog
-FROM --platform=${TARGETPLATFORM:-linux/amd64} node:16.17-alpine as ship
+FROM --platform=${TARGETPLATFORM:-linux/amd64} ghcr.io/openfaas/of-watchdog:0.9.12 as watchdog
+FROM --platform=${TARGETPLATFORM:-linux/amd64} node:18.16-alpine as build
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
