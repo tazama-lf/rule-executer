@@ -6,20 +6,16 @@ import {
   RuleRequest,
   RuleResult,
 } from '@frmscoe/frms-coe-lib/lib/interfaces';
-import { responseCallback } from '@frmscoe/frms-coe-startup-lib/lib/types/onMessageFunction';
 import apm from 'elastic-apm-node';
 import { handleTransaction } from 'rule/lib';
-import { databaseManager, loggerService } from '..';
+import { databaseManager, loggerService, server } from '..';
 import { config } from '../config';
 import determineOutcome from '../helpers/determineOutcome';
 
-export const execute = async (
-  reqObj: unknown,
-  handleResponse: responseCallback,
-): Promise<void> => {
+export const execute = async (reqObj: unknown): Promise<void> => {
   let request!: RuleRequest;
   let dataCache: DataCache;
-  const responseSubject = `RuleResponse${config.ruleName}`;
+  const responseSubject = `Rule-${config.ruleName}`;
   loggerService.log('Start - Handle execute request');
 
   // Get required information from the incoming request
@@ -79,7 +75,7 @@ export const execute = async (
       subRuleRef: '.err',
       reason: (error as Error).message,
     };
-    await handleResponse(
+    await server.handleResponse(
       JSON.stringify({
         transaction: request.transaction,
         ruleRes,
@@ -115,12 +111,12 @@ export const execute = async (
   }
 
   try {
-    await handleResponse(
-      JSON.stringify({
+    await server.handleResponse(
+      {
         transaction: request.transaction,
         ruleResult,
         networkMap: request.networkMap,
-      }),
+      },
       [responseSubject],
     );
     // await sendRuleResult(ruleResult, request, loggerService);

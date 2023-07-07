@@ -1,6 +1,6 @@
 import { config } from './config';
 import NodeCache from 'node-cache';
-import { init } from '@frmscoe/frms-coe-startup-lib';
+import { StartupFactory, IStartupService } from 'startup';
 import apm from 'elastic-apm-node';
 import {
   CreateDatabaseManager,
@@ -10,7 +10,7 @@ import {
 import { execute } from './controllers/execute';
 
 export const loggerService: LoggerService = new LoggerService();
-
+export let server: IStartupService;
 if (config.apmLogging) {
   apm.start({
     serviceName: config.functionName,
@@ -58,9 +58,10 @@ const databaseManagerConfig = {
 let databaseManager: DatabaseManagerInstance<typeof databaseManagerConfig>;
 
 const runServer = async () => {
+  server = new StartupFactory();
   for (let retryCount = 0; retryCount < 10; retryCount++) {
     loggerService.log(`Connecting to nats server...`);
-    if (!(await init(execute))) {
+    if (!(await server.init(execute))) {
       loggerService.warn(`Unable to connect, retry count: ${retryCount}`);
       await new Promise((resolve) => setTimeout(resolve, 5000));
     } else {
