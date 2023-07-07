@@ -15,7 +15,6 @@ import determineOutcome from '../helpers/determineOutcome';
 export const execute = async (reqObj: unknown): Promise<void> => {
   let request!: RuleRequest;
   let dataCache: DataCache;
-  const responseSubject = `Rule-${config.ruleName}`;
   loggerService.log('Start - Handle execute request');
 
   // Get required information from the incoming request
@@ -81,7 +80,6 @@ export const execute = async (reqObj: unknown): Promise<void> => {
         ruleRes,
         networkMap: request.networkMap,
       }),
-      [responseSubject],
     );
     return;
   }
@@ -111,14 +109,11 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   }
 
   try {
-    await server.handleResponse(
-      {
-        transaction: request.transaction,
-        ruleResult,
-        networkMap: request.networkMap,
-      },
-      [responseSubject],
-    );
+    await server.handleResponse({
+      transaction: request.transaction,
+      ruleRes,
+      networkMap: request.networkMap,
+    });
     // await sendRuleResult(ruleResult, request, loggerService);
   } catch (error) {
     const failMessage = 'Failed to send to Typology Processor.';
