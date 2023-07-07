@@ -1,6 +1,6 @@
 import { config } from './config';
 import NodeCache from 'node-cache';
-import { StartupFactory, IStartupService } from 'startup';
+import { StartupFactory, IStartupService } from '@frmscoe/frms-coe-startup-lib';
 import apm from 'elastic-apm-node';
 import {
   CreateDatabaseManager,

@@ -36,4 +36,5 @@ jobs:
       - name: Run unit tests
         run: npm run test
         env:
-          NODE_ENV: 'test'
+            NODE_ENV: 'test'
+            STARTUP_TYPE: 'nats'

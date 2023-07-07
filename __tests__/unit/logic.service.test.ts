@@ -16,7 +16,7 @@ import {
   LoggerService,
   ManagerConfig,
 } from '@frmscoe/frms-coe-lib';
-import { StartupFactory } from 'startup';
+import { StartupFactory } from '@frmscoe/frms-coe-startup-lib';
 
 const getMockRequest = () => {
   const quote: RuleRequest = {
