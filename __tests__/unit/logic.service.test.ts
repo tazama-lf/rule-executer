@@ -1,5 +1,4 @@
-import { databaseManager, init, runServer } from '../../src';
-import App from '../../src/app';
+import { initializeDB, runServer, server } from '../../src';
 import { config } from '../../src/config';
 import ioredis from 'ioredis-mock';
 import {
@@ -12,12 +11,12 @@ import {
 } from '@frmscoe/frms-coe-lib/lib/interfaces';
 import { handleTransaction } from 'rule/lib';
 import { execute } from '../../src/controllers/execute';
-import { Context } from 'koa';
 import {
   DatabaseManagerInstance,
   LoggerService,
   ManagerConfig,
 } from '@frmscoe/frms-coe-lib';
+import { StartupFactory } from '@frmscoe/frms-coe-startup-lib';
 
 const getMockRequest = () => {
   const quote: RuleRequest = {
@@ -43,21 +42,17 @@ const getMockRequest = () => {
   return quote;
 };
 
-let app: App;
 beforeAll(async () => {
-  app = runServer();
-  await init();
+  await initializeDB();
+  runServer();
 });
 
-afterAll(() => {
-  app.terminate();
-});
+afterAll(() => {});
 
 describe('Logic Service', () => {
   beforeEach(() => {
     config.ruleVersion = '1.0.0';
     jest.mock('ioredis', () => ioredis);
-    //jest.spyOn(console, 'error').mockImplementation(() => { });
     jest
       .fn(handleTransaction)
       .mockImplementation(
@@ -78,24 +73,17 @@ describe('Logic Service', () => {
       );
   });
 
-  // config.apmLogging = false;
   describe('execute', () => {
     it('should respond with rule result of true for happy path', async () => {
       const expectedReq = getMockRequest();
-      let ctx = {
-        body: {
-          transaction: expectedReq.transaction,
-          networkMap: expectedReq.networkMap,
-          DataCache: {},
-        },
-        status: 404,
+      let resString: string = '';
+      server.handleResponse = (reponse: unknown): Promise<void> => {
+        resString = reponse as string;
+        return Promise.resolve();
       };
 
-      const res = await execute(ctx as Context);
-      if (res)
-        // Expect fail status as we still have a http rest server - this will be fixed with new backend
-        expect(res.status).toEqual(500);
-      else expect('Error').toBe('Occurred');
+      const res = await execute(expectedReq as any);
+      expect(resString).toBeTruthy();
     });
   });
 });

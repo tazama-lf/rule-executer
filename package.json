@@ -8,7 +8,7 @@
     "dev": "nodemon",
     "build": "tsc --project tsconfig.json",
     "cleanup": "rm -rf build template jest.config.js jest.config.js.map node_modules package-lock.json",
-    "start": "node build/index",
+    "start": "node -r dotenv/config build/index",
     "start:dev": "env $(cat .env.template) nodemon",
     "fix": "npm run fix:prettier && npm run fix:eslint",
     "fix:eslint": "eslint --fix \"**/*.ts\"",
@@ -17,7 +17,7 @@
     "lint:eslint": "eslint \"**/*.ts\"",
     "lint:prettier": "prettier --check \"**/*.ts\"",
     "prepare": "husky install",
-    "test": "jest --config=jest.config.ts --passWithNoTests --runInBand --detectOpenHandles --forceExit",
+    "test": "set STARTUP_TYPE=nats&&jest --config=jest.config.ts --passWithNoTests --runInBand --detectOpenHandles --forceExit",
     "test:watch": "jest --config=jest.config.ts --watch"
   },
   "keywords": [],
@@ -30,6 +30,7 @@
   "license": "ISC",
   "dependencies": {
     "@frmscoe/frms-coe-lib": "^0.1.27",
+    "@frmscoe/frms-coe-startup-lib": "^0.0.11",
     "@log4js-node/logstash-http": "^1.1.0",
     "arangojs": "^8.3.0",
     "axios": "^1.4.0",
