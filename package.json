@@ -29,7 +29,7 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "@frmscoe/frms-coe-lib": "^0.1.27",
+    "@frmscoe/frms-coe-lib": "^0.1.29",
     "@frmscoe/frms-coe-startup-lib": "^0.0.11",
     "@log4js-node/logstash-http": "^1.1.0",
     "arangojs": "^8.3.0",

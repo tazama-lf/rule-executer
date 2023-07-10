@@ -33,6 +33,8 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     return;
   }
 
+  const hrTime = process.hrtime();
+
   let ruleRes: RuleResult = {
     id: `${config.ruleName}@${config.ruleVersion}`,
     cfg: '',
@@ -40,6 +42,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     subRuleRef: '.err',
     reason: 'Unhandled rule result outcome',
     desc: '',
+    prcgTm: -1,
   };
 
   ruleRes.cfg = (() => {
@@ -69,6 +72,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       throw new Error('Rule processor configuration not retrievable');
     ruleRes.desc = getReadableDescription(ruleConfig);
   } catch (error) {
+    ruleRes.prcgTm = hrTime[0] * 1000 + hrTime[1] / 1000000;
     ruleRes = {
       ...ruleRes,
       subRuleRef: '.err',
@@ -105,6 +109,9 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       reason: (error as Error).message,
     };
   } finally {
+    const endHrTime = hrTime[0] * 1000 + hrTime[1] / 1000000;
+    ruleRes.prcgTm = endHrTime;
+    ruleResult.prcgTm = endHrTime;
     loggerService.log('End - Handle execute request');
   }
 
