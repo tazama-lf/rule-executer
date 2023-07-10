@@ -17,6 +17,7 @@ import { LoggerService } from '@frmscoe/frms-coe-lib';
 export const execute = async (ctx: Context): Promise<void | Context> => {
   let request!: RuleRequest;
   loggerService.log('Start - Handle execute request');
+  const hrTime = process.hrtime();
 
   // Get required information from the incoming request
   try {
@@ -42,6 +43,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
     subRuleRef: '.err',
     reason: 'Unhandled rule result outcome',
     desc: '',
+    prcgTm: 0,
   };
 
   ruleRes.cfg = (() => {
@@ -83,6 +85,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       DataCache: request.DataCache,
     };
     ctx.status = 500;
+    ruleRes.prcgTm = hrTime[0] * 1000 + hrTime[1] / 1000000;
     await sendRuleResult(ruleRes, request, loggerService);
     return ctx;
   }
@@ -124,6 +127,9 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
     };
     ctx.status = 500;
   } finally {
+    const endTime = hrTime[0] * 1000 + hrTime[1] / 1000000;
+    ruleResult.prcgTm = endTime;
+    ruleRes.prcgTm = endTime;
     loggerService.log('End - Handle execute request');
   }
 
