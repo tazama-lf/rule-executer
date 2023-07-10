@@ -35,7 +35,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
     return ctx;
   }
 
-  const hrTime = process.hrtime();
+  const startHrTime = process.hrtime();
 
   let ruleRes: RuleResult = {
     id: `${config.ruleName}@${config.ruleVersion}`,
@@ -74,7 +74,11 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       throw new Error('Rule processor configuration not retrievable');
     ruleRes.desc = getReadableDescription(ruleConfig);
   } catch (error) {
-    ruleRes.prcgTm = hrTime[0] * 1000 + hrTime[1] / 1000000;
+    const endHrTime = process.hrtime();
+    const duration =
+      (endHrTime[0] - startHrTime[0]) * 1000 +
+      (endHrTime[1] - startHrTime[1]) / 1000000;
+    ruleRes.prcgTm = duration;
     ruleRes = {
       ...ruleRes,
       subRuleRef: '.err',
@@ -128,9 +132,12 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
     };
     ctx.status = 500;
   } finally {
-    const endHrTime = hrTime[0] * 1000 + hrTime[1] / 1000000;
-    ruleRes.prcgTm = endHrTime;
-    ruleResult.prcgTm = endHrTime;
+    const endHrTime = process.hrtime();
+    const duration =
+      (endHrTime[0] - startHrTime[0]) * 1000 +
+      (endHrTime[1] - startHrTime[1]) / 1000000;
+    ruleRes.prcgTm = duration;
+    ruleResult.prcgTm = duration;
     loggerService.log('End - Handle execute request');
   }
 
