@@ -1,18 +1,16 @@
-import { Context } from 'koa';
+import { getReadableDescription } from '@frmscoe/frms-coe-lib/lib/helpers/RuleConfig';
+import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
+import {
+  DataCache,
+  RuleConfig,
+  RuleRequest,
+  RuleResult,
+} from '@frmscoe/frms-coe-lib/lib/interfaces';
 import apm from 'elastic-apm-node';
 import { handleTransaction } from 'rule/lib';
+import { databaseManager, loggerService, server } from '..';
 import { config } from '../config';
-import axios from 'axios';
 import determineOutcome from '../helpers/determineOutcome';
-import { loggerService, databaseManager } from '..';
-import {
-  RuleResult,
-  RuleRequest,
-  RuleConfig,
-} from '@frmscoe/frms-coe-lib/lib/interfaces';
-import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
-import { getReadableDescription } from '@frmscoe/frms-coe-lib/lib/helpers/RuleConfig';
-import { LoggerService } from '@frmscoe/frms-coe-lib';
 
 const calculateDuration = (
   startHrTime: Array<number>,
@@ -24,13 +22,15 @@ const calculateDuration = (
   );
 };
 
-export const execute = async (ctx: Context): Promise<void | Context> => {
+export const execute = async (reqObj: unknown): Promise<void> => {
   let request!: RuleRequest;
+  let dataCache: DataCache;
   loggerService.log('Start - Handle execute request');
 
   // Get required information from the incoming request
   try {
-    const message = ctx.request.body ?? JSON.parse('');
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const message = reqObj as any;
     request = {
       transaction: message.transaction,
       networkMap: message.networkMap,
@@ -40,9 +40,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
     const failMessage = 'Failed to parse execution request.';
     loggerService.error(failMessage, err, 'executeController');
     loggerService.log('End - Handle execute request');
-    ctx.body = `${failMessage} Details: \r\n${err}`;
-    ctx.status = 500;
-    return ctx;
+    return;
   }
 
   const startHrTime = process.hrtime();
@@ -91,15 +89,14 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       subRuleRef: '.err',
       reason: (error as Error).message,
     };
-    ctx.body = {
-      ruleResult: ruleRes,
-      transaction: request.transaction,
-      networkSubMap: request.networkMap,
-      DataCache: request.DataCache,
-    };
-    ctx.status = 500;
-    await sendRuleResult(ruleRes, request, loggerService);
-    return ctx;
+    await server.handleResponse(
+      JSON.stringify({
+        transaction: request.transaction,
+        ruleRes,
+        networkMap: request.networkMap,
+      }),
+    );
+    return;
   }
   let ruleResult: RuleResult = { ...ruleRes };
   const span = apm.startSpan('handleTransaction');
@@ -109,19 +106,10 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       determineOutcome,
       ruleRes,
       loggerService,
-      ruleConfig,
+      ruleConfig!,
       databaseManager,
     );
     span?.end();
-    const resultMessage = `Result for Rule ${config.ruleName}@${config.ruleVersion}, is ${ruleResult.result}`;
-    ctx.body = {
-      message: resultMessage,
-      ruleResult,
-      transaction: request.transaction,
-      networkSubMap: request.networkMap,
-      DataCache: request.DataCache,
-    };
-    ctx.status = 200;
   } catch (error) {
     span?.end();
     const failMessage = 'Failed to process execution request.';
@@ -131,13 +119,6 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       subRuleRef: '.err',
       reason: (error as Error).message,
     };
-    ctx.body = {
-      ruleResult: ruleRes,
-      transaction: request.transaction,
-      networkSubMap: request.networkMap,
-      DataCache: request.DataCache,
-    };
-    ctx.status = 500;
   } finally {
     const endHrTime = process.hrtime();
     const duration = calculateDuration(startHrTime, endHrTime);
@@ -147,7 +128,12 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
   }
 
   try {
-    await sendRuleResult(ruleResult, request, loggerService);
+    await server.handleResponse({
+      transaction: request.transaction,
+      ruleRes,
+      networkMap: request.networkMap,
+    });
+    // await sendRuleResult(ruleResult, request, loggerService);
   } catch (error) {
     const failMessage = 'Failed to send to Typology Processor.';
     loggerService.error(failMessage, error, 'executeController');
@@ -157,41 +143,5 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       reason: (error as Error).message,
       result: false,
     };
-    ctx.body = {
-      ruleResult: ruleRes,
-      transaction: request.transaction,
-      networkSubMap: request.networkMap,
-      DataCache: request.DataCache,
-    };
-    ctx.status = 500;
-  }
-
-  return ctx;
-};
-
-const sendRuleResult = async (
-  ruleResult: RuleResult,
-  req: RuleRequest,
-  loggerService: LoggerService,
-) => {
-  const toSend = {
-    transaction: req.transaction,
-    ruleResult,
-    networkMap: req.networkMap,
-    DataCache: req.DataCache,
-  };
-  for (const channel of req.networkMap.messages[0].channels) {
-    for (const typology of channel.typologies) {
-      if (typology.rules.some((rule) => rule.id === ruleResult.id)) {
-        const typologyResponse = await axios.post(
-          `${typology.host}/execute`,
-          toSend,
-        );
-        if (typologyResponse.status !== 200) {
-          loggerService.error(typologyResponse.data);
-        }
-        return;
-      }
-    }
   }
 };
