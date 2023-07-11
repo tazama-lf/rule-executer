@@ -14,6 +14,16 @@ import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
 import { getReadableDescription } from '@frmscoe/frms-coe-lib/lib/helpers/RuleConfig';
 import { LoggerService } from '@frmscoe/frms-coe-lib';
 
+const calculateDuration = (
+  startHrTime: Array<number>,
+  endHrTime: Array<number>,
+): number => {
+  return (
+    (endHrTime[0] - startHrTime[0]) * 1000 +
+    (endHrTime[1] - startHrTime[1]) / 1000000
+  );
+};
+
 export const execute = async (ctx: Context): Promise<void | Context> => {
   let request!: RuleRequest;
   loggerService.log('Start - Handle execute request');
@@ -35,7 +45,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
     return ctx;
   }
 
-  const hrTime = process.hrtime();
+  const startHrTime = process.hrtime();
 
   let ruleRes: RuleResult = {
     id: `${config.ruleName}@${config.ruleVersion}`,
@@ -74,7 +84,8 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       throw new Error('Rule processor configuration not retrievable');
     ruleRes.desc = getReadableDescription(ruleConfig);
   } catch (error) {
-    ruleRes.prcgTm = hrTime[0] * 1000 + hrTime[1] / 1000000;
+    const endHrTime = process.hrtime();
+    ruleRes.prcgTm = calculateDuration(startHrTime, endHrTime);
     ruleRes = {
       ...ruleRes,
       subRuleRef: '.err',
@@ -128,9 +139,10 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
     };
     ctx.status = 500;
   } finally {
-    const endHrTime = hrTime[0] * 1000 + hrTime[1] / 1000000;
-    ruleRes.prcgTm = endHrTime;
-    ruleResult.prcgTm = endHrTime;
+    const endHrTime = process.hrtime();
+    const duration = calculateDuration(startHrTime, endHrTime);
+    ruleRes.prcgTm = duration;
+    ruleResult.prcgTm = duration;
     loggerService.log('End - Handle execute request');
   }
 
