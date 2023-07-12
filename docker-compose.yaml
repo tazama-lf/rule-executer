@@ -1,5 +1,8 @@
-version: "2"
 services:
   node:
-    image: channel_orchestrator
+    image: rule-executer
+    build:
+      context: .
+      args:
+        - GH_TOKEN
     restart: "no"
