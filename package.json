@@ -17,7 +17,7 @@
     "lint:eslint": "eslint \"**/*.ts\"",
     "lint:prettier": "prettier --check \"**/*.ts\"",
     "prepare": "husky install",
-    "test": "set STARTUP_TYPE=nats&&jest --config=jest.config.ts --passWithNoTests --runInBand --detectOpenHandles --forceExit",
+    "test": "jest --config=jest.config.ts --passWithNoTests --runInBand --detectOpenHandles --forceExit",
     "test:watch": "jest --config=jest.config.ts --watch"
   },
   "keywords": [],
