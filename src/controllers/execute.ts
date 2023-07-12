@@ -84,8 +84,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
       throw new Error('Rule processor configuration not retrievable');
     ruleRes.desc = getReadableDescription(ruleConfig);
   } catch (error) {
-    const endHrTime = process.hrtime();
-    ruleRes.prcgTm = calculateDuration(startHrTime, endHrTime);
+    ruleRes.prcgTm = calculateDuration(startHrTime, process.hrtime());
     ruleRes = {
       ...ruleRes,
       subRuleRef: '.err',
@@ -139,8 +138,7 @@ export const execute = async (ctx: Context): Promise<void | Context> => {
     };
     ctx.status = 500;
   } finally {
-    const endHrTime = process.hrtime();
-    const duration = calculateDuration(startHrTime, endHrTime);
+    const duration = calculateDuration(startHrTime, process.hrtime());
     ruleRes.prcgTm = duration;
     ruleResult.prcgTm = duration;
     loggerService.log('End - Handle execute request');
