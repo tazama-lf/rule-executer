@@ -12,9 +12,19 @@ import { databaseManager, loggerService, server } from '..';
 import { config } from '../config';
 import determineOutcome from '../helpers/determineOutcome';
 
-export const execute = async (reqObj: unknown): Promise<void> => {
+
+const calculateDuration = (
+  startHrTime: Array<number>,
+  endHrTime: Array<number>,
+): number => {
+  return (
+    (endHrTime[0] - startHrTime[0]) * 1000 +
+    (endHrTime[1] - startHrTime[1]) / 1000000
+  );
+};
+
+export const execute = async (ctx: Context): Promise<void | Context> => {
   let request!: RuleRequest;
-  let dataCache: DataCache;
   loggerService.log('Start - Handle execute request');
 
   // Get required information from the incoming request
@@ -33,7 +43,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     return;
   }
 
-  const hrTime = process.hrtime();
+  const startHrTime = process.hrtime();
 
   let ruleRes: RuleResult = {
     id: `${config.ruleName}@${config.ruleVersion}`,
@@ -72,7 +82,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       throw new Error('Rule processor configuration not retrievable');
     ruleRes.desc = getReadableDescription(ruleConfig);
   } catch (error) {
-    ruleRes.prcgTm = hrTime[0] * 1000 + hrTime[1] / 1000000;
+    ruleRes.prcgTm = calculateDuration(startHrTime, process.hrtime());
     ruleRes = {
       ...ruleRes,
       subRuleRef: '.err',
@@ -109,9 +119,9 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       reason: (error as Error).message,
     };
   } finally {
-    const endHrTime = hrTime[0] * 1000 + hrTime[1] / 1000000;
-    ruleRes.prcgTm = endHrTime;
-    ruleResult.prcgTm = endHrTime;
+    const duration = calculateDuration(startHrTime, process.hrtime());
+    ruleRes.prcgTm = duration;
+    ruleResult.prcgTm = duration;
     loggerService.log('End - Handle execute request');
   }
 
