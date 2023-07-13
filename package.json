@@ -2,7 +2,7 @@
   "name": "rule-executer",
   "version": "0.1.0",
   "description": "Actio FRM Rule Executer",
-  "main": "src/index.ts",
+  "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
     "dev": "nodemon",
@@ -21,27 +21,17 @@
     "test:watch": "jest --config=jest.config.ts --watch"
   },
   "keywords": [],
-  "contributors": [
-    {
-      "name": "Uche Akogwu",
-      "email": "ucheakogwu@gmail.com"
-    }
-  ],
   "license": "ISC",
   "dependencies": {
     "@frmscoe/frms-coe-lib": "^0.1.29",
     "@frmscoe/frms-coe-startup-lib": "^0.0.11",
     "@log4js-node/logstash-http": "^1.1.0",
-    "arangojs": "^8.3.0",
-    "axios": "^1.4.0",
     "dotenv": "^16.0.3",
     "elastic-apm-node": "^3.46.0",
-    "koa": "2.14.2",
-    "koa-bodyparser": "4.4.0",
-    "koa-router": "12.0.0",
     "log4js": "^6.9.1",
     "node-cache": "^5.1.2",
-    "rule": "npm:@frmscoe/rule-901@^1.0.2"
+    "rule": "npm:@frmscoe/rule-901@^1.0.2",
+    "tslib": "^2.6.0"
   },
   "devDependencies": {
     "@types/babel__traverse": "^7.20.1",
