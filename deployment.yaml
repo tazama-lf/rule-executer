@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rule-executer-rel-1-0-0
+  namespace: processor
+  labels:
+    app: rule-executer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rule-executer
+  template:
+    metadata:
+      name: rule-executer-rel-1-0-0
+      labels:
+        app: rule-executer
+      annotations:
+        prometheus.io.scrape: 'false'
+    spec:
+      containers:
+        - name: rule-executer-rel-1-0-0
+          image: actio.azurecr.io/rule-executer-rel-1-0-0:1.0.0
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources: {}
+          imagePullPolicy: Always
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      imagePullSecrets:
+        - name: frmpullsecret
+      schedulerName: default-scheduler
+      enableServiceLinks: false
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
