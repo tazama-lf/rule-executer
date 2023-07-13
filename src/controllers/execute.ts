@@ -91,7 +91,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     await server.handleResponse(
       JSON.stringify({
         transaction: request.transaction,
-        ruleRes,
+        ruleResult: ruleRes,
         networkMap: request.networkMap,
       }),
     );
@@ -128,7 +128,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   try {
     await server.handleResponse({
       transaction: request.transaction,
-      ruleRes,
+      ruleResult: ruleRes,
       networkMap: request.networkMap,
     });
     // await sendRuleResult(ruleResult, request, loggerService);
