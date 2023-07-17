@@ -26,6 +26,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   let request!: RuleRequest;
   let dataCache: DataCache;
   loggerService.log('Start - Handle execute request');
+  const startHrTime = process.hrtime();
 
   // Get required information from the incoming request
   try {
@@ -42,8 +43,6 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     loggerService.log('End - Handle execute request');
     return;
   }
-
-  const startHrTime = process.hrtime();
 
   let ruleRes: RuleResult = {
     id: `${config.ruleName}@${config.ruleVersion}`,
@@ -127,9 +126,8 @@ export const execute = async (reqObj: unknown): Promise<void> => {
 
   try {
     await server.handleResponse({
-      transaction: request.transaction,
+      ...request,
       ruleResult: ruleRes,
-      networkMap: request.networkMap,
     });
     // await sendRuleResult(ruleResult, request, loggerService);
   } catch (error) {
