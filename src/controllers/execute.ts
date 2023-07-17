@@ -90,7 +90,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     await server.handleResponse(
       JSON.stringify({
         transaction: request.transaction,
-        ruleRes,
+        ruleResult: ruleRes,
         networkMap: request.networkMap,
       }),
     );
