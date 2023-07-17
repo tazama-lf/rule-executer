@@ -127,7 +127,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   try {
     await server.handleResponse({
       ...request,
-      ruleRes,
+      ruleResult: ruleRes,
     });
     // await sendRuleResult(ruleResult, request, loggerService);
   } catch (error) {
