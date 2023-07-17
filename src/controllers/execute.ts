@@ -175,10 +175,8 @@ const sendRuleResult = async (
   loggerService: LoggerService,
 ) => {
   const toSend = {
-    transaction: req.transaction,
+    ...req,
     ruleResult,
-    networkMap: req.networkMap,
-    DataCache: req.DataCache,
   };
   for (const channel of req.networkMap.messages[0].channels) {
     for (const typology of channel.typologies) {
