@@ -1,7 +1,6 @@
 import { getReadableDescription } from '@frmscoe/frms-coe-lib/lib/helpers/RuleConfig';
 import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
 import {
-  DataCache,
   RuleConfig,
   RuleRequest,
   RuleResult,
@@ -24,7 +23,6 @@ const calculateDuration = (
 
 export const execute = async (reqObj: unknown): Promise<void> => {
   let request!: RuleRequest;
-  let dataCache: DataCache;
   loggerService.log('Start - Handle execute request');
   const startHrTime = process.hrtime();
 
@@ -36,6 +34,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       transaction: message.transaction,
       networkMap: message.networkMap,
       DataCache: message.DataCache,
+      metaData: message?.metaData,
     };
   } catch (err) {
     const failMessage = 'Failed to parse execution request.';
