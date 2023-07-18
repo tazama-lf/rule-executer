@@ -96,17 +96,17 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     );
     return;
   }
-  let ruleResult: RuleResult = { ...ruleRes };
   const span = apm.startSpan('handleTransaction');
   try {
-    ruleResult = await handleTransaction(
+    ruleRes = await handleTransaction(
       request,
       determineOutcome,
       ruleRes,
       loggerService,
-      ruleConfig!,
+      ruleConfig,
       databaseManager,
     );
+
     span?.end();
   } catch (error) {
     span?.end();
@@ -120,7 +120,6 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   } finally {
     const duration = calculateDuration(startHrTime, process.hrtime());
     ruleRes.prcgTm = duration;
-    ruleResult.prcgTm = duration;
     loggerService.log('End - Handle execute request');
   }
 
@@ -129,7 +128,6 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       ...request,
       ruleResult: ruleRes,
     });
-    // await sendRuleResult(ruleResult, request, loggerService);
   } catch (error) {
     const failMessage = 'Failed to send to Typology Processor.';
     loggerService.error(failMessage, error, 'executeController');
