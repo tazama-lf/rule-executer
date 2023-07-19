@@ -12,7 +12,7 @@ import { config } from '../config';
 import determineOutcome from '../helpers/determineOutcome';
 
 const calculateDuration = (startTime: bigint, endTime: bigint): number => {
-  return Number(Number(startTime - endTime).toFixed(3));
+  return Number((Number(endTime - startTime) / 1000000).toFixed(3));
 };
 
 export const execute = async (reqObj: unknown): Promise<void> => {
