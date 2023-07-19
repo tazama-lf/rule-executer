@@ -11,20 +11,14 @@ import { databaseManager, loggerService, server } from '..';
 import { config } from '../config';
 import determineOutcome from '../helpers/determineOutcome';
 
-const calculateDuration = (
-  startHrTime: Array<number>,
-  endHrTime: Array<number>,
-): number => {
-  return (
-    (endHrTime[0] - startHrTime[0]) * 1000 +
-    (endHrTime[1] - startHrTime[1]) / 1000000
-  );
+const calculateDuration = (startTime: bigint, endTime: bigint): number => {
+  return Number(Number(startTime - endTime).toFixed(3));
 };
 
 export const execute = async (reqObj: unknown): Promise<void> => {
   let request!: RuleRequest;
   loggerService.log('Start - Handle execute request');
-  const startHrTime = process.hrtime();
+  const startTime = process.hrtime.bigint();
 
   // Get required information from the incoming request
   try {
@@ -80,7 +74,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       throw new Error('Rule processor configuration not retrievable');
     ruleRes.desc = getReadableDescription(ruleConfig);
   } catch (error) {
-    ruleRes.prcgTm = calculateDuration(startHrTime, process.hrtime());
+    ruleRes.prcgTm = calculateDuration(startTime, process.hrtime.bigint());
     ruleRes = {
       ...ruleRes,
       subRuleRef: '.err',
@@ -117,8 +111,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       reason: (error as Error).message,
     };
   } finally {
-    const duration = calculateDuration(startHrTime, process.hrtime());
-    ruleRes.prcgTm = duration;
+    ruleRes.prcgTm = calculateDuration(startTime, process.hrtime.bigint());
     loggerService.log('End - Handle execute request');
   }
 
