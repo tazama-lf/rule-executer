@@ -13,7 +13,7 @@ import determineOutcome from '../helpers/determineOutcome';
 
 const calculateDuration = (startTime: bigint): number => {
   const endTime: bigint = process.hrtime.bigint();
-  return Number((Number(endTime - startTime) / 1000000).toFixed(3));
+  return Number(endTime - startTime);
 };
 
 export const execute = async (reqObj: unknown): Promise<void> => {
