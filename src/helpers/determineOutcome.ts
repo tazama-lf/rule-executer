@@ -1,4 +1,7 @@
-import { RuleConfig, RuleResult } from '@frmscoe/frms-coe-lib/lib/interfaces';
+import {
+  type RuleConfig,
+  type RuleResult,
+} from '@frmscoe/frms-coe-lib/lib/interfaces';
 import { loggerService } from '..';
 
 const determineOutcome = (
