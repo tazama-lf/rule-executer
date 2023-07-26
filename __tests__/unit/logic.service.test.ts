@@ -1,22 +1,19 @@
-import { initializeDB, runServer, server } from '../../src';
-import { config } from '../../src/config';
-import ioredis from 'ioredis-mock';
-import {
-  RuleResult,
-  RuleRequest,
-  RuleConfig,
-  type DataCache,
-  NetworkMap,
-  Pacs002,
-} from '@frmscoe/frms-coe-lib/lib/interfaces';
-import { handleTransaction } from 'rule/lib';
-import { execute } from '../../src/controllers/execute';
 import {
   DatabaseManagerInstance,
   LoggerService,
   ManagerConfig,
 } from '@frmscoe/frms-coe-lib';
-import { StartupFactory } from '@frmscoe/frms-coe-startup-lib';
+import {
+  NetworkMap,
+  RuleConfig,
+  RuleRequest,
+  RuleResult,
+} from '@frmscoe/frms-coe-lib/lib/interfaces';
+import ioredis from 'ioredis-mock';
+import { handleTransaction } from 'rule/lib';
+import { initializeDB, runServer, server } from '../../src';
+import { config } from '../../src/config';
+import { execute } from '../../src/controllers/execute';
 
 const getMockRequest = () => {
   const quote: RuleRequest = {

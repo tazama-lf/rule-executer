@@ -1,7 +1,10 @@
 coverage
 templates
 build
-**/node_modules
-*.spec.ts
+node_modules
+docs
+build
 __tests__
+cluster-setup.ts
+jest.config.ts
 setup.jest.js

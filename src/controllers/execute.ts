@@ -1,9 +1,9 @@
 import { getReadableDescription } from '@frmscoe/frms-coe-lib/lib/helpers/RuleConfig';
 import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
 import {
-  RuleConfig,
-  RuleRequest,
-  RuleResult,
+  type RuleConfig,
+  type RuleRequest,
+  type RuleResult,
 } from '@frmscoe/frms-coe-lib/lib/interfaces';
 import apm from 'elastic-apm-node';
 import { handleTransaction } from 'rule/lib';
