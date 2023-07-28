@@ -1,3 +1,4 @@
+import { type RedisConfig } from '@frmscoe/frms-coe-lib/lib/interfaces';
 export interface IConfig {
   restPort: number;
   logstashHost: string;
@@ -20,10 +21,5 @@ export interface IConfig {
   configCollection: string;
   graphDb: string;
   graphCollection: string;
-  redis: {
-    auth: string;
-    db: number;
-    host: string;
-    port: number;
-  };
+  redis: RedisConfig;
 }

@@ -1,6 +1,7 @@
 ARG BUILD_IMAGE=node:16
 ARG RUN_IMAGE=gcr.io/distroless/nodejs16-debian11:nonroot
 
+# Stage 1 (Build with Dev Deps)
 FROM ${BUILD_IMAGE} AS builder
 LABEL stage=build
 # TS -> JS stage
@@ -15,6 +16,7 @@ ARG GH_TOKEN
 RUN npm ci --ignore-scripts
 RUN npm run build
 
+# Stage 2 (Remove Unneeded Node Modules)
 FROM ${BUILD_IMAGE} AS dep-resolver
 LABEL stage=pre-prod
 # To filter out dev dependencies from final build
@@ -24,6 +26,7 @@ COPY .npmrc ./
 ARG GH_TOKEN
 RUN npm ci --omit=dev --ignore-scripts
 
+# Stage 3 (Run Image - Everything above not included in final build)
 FROM ${RUN_IMAGE} AS run-env
 USER nonroot
 
@@ -58,10 +61,11 @@ ENV CONFIG_DATABASE=Configuration
 ENV CONFIG_COLLECTION=configuration
 ENV GRAPH_DATABASE=pseudonyms
 ENV GRAPH_COLLECTION=transactionRelationship
+
 ENV REDIS_DB=0
 ENV REDIS_AUTH=
-ENV REDIS_HOST=
-ENV REDIS_PORT=6379
+ENV REDIS_SERVERS=
+ENV REDIS_IS_CLUSTER=
 
 ENV STARTUP_TYPE=nats
 ENV SERVER_URL=0.0.0.0:4222

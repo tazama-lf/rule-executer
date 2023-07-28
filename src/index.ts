@@ -1,10 +1,13 @@
 import { config } from './config';
 import NodeCache from 'node-cache';
-import { StartupFactory, IStartupService } from '@frmscoe/frms-coe-startup-lib';
+import {
+  StartupFactory,
+  type IStartupService,
+} from '@frmscoe/frms-coe-startup-lib';
 import apm from 'elastic-apm-node';
 import {
   CreateDatabaseManager,
-  DatabaseManagerInstance,
+  type DatabaseManagerInstance,
   LoggerService,
 } from '@frmscoe/frms-coe-lib';
 import { execute } from './controllers/execute';
@@ -24,9 +27,9 @@ if (config.apmLogging) {
 const databaseManagerConfig = {
   redisConfig: {
     db: config.redis.db,
-    host: config.redis.host,
-    password: config.redis.auth,
-    port: config.redis.port,
+    servers: config.redis.servers,
+    password: config.redis.password,
+    isCluster: config.redis.isCluster,
   },
   transactionHistory: {
     certPath: config.dbCertPath,
@@ -57,7 +60,7 @@ const databaseManagerConfig = {
 
 let databaseManager: DatabaseManagerInstance<typeof databaseManagerConfig>;
 
-const runServer = async () => {
+const runServer = async (): Promise<void> => {
   server = new StartupFactory();
   if (config.nodeEnv !== 'test')
     for (let retryCount = 0; retryCount < 10; retryCount++) {
@@ -72,29 +75,33 @@ const runServer = async () => {
     }
 };
 
-export const initializeDB = async () => {
+export const initializeDB = async (): Promise<void> => {
   const manager = await CreateDatabaseManager(databaseManagerConfig);
   databaseManager = manager;
   loggerService.log(JSON.stringify(databaseManager.isReadyCheck()));
 };
 
 process.on('uncaughtException', (err) => {
-  loggerService.error(`process on uncaughtException error: ${err}`);
+  loggerService.error(
+    `process on uncaughtException error: ${JSON.stringify(err)}`,
+  );
 });
 
 process.on('unhandledRejection', (err) => {
-  loggerService.error(`process on unhandledRejection error: ${err}`);
+  loggerService.error(
+    `process on unhandledRejection error: ${JSON.stringify(err)}`,
+  );
 });
 
-try {
-  if (process.env.NODE_ENV !== 'test') {
-    (async () => {
+if (process.env.NODE_ENV !== 'test') {
+  (async () => {
+    try {
       await initializeDB();
       runServer();
-    })();
-  }
-} catch (err) {
-  loggerService.error('Error while starting HTTP server', err as Error);
+    } catch (err) {
+      loggerService.error('Error while starting HTTP server', err as Error);
+    }
+  })();
 }
 
 export const cache = new NodeCache();
