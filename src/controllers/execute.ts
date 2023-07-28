@@ -17,7 +17,7 @@ const calculateDuration = (startTime: bigint): number => {
 };
 
 export const execute = async (reqObj: unknown): Promise<void> => {
-  const spanRuleExec = apm.startTransaction('request.process');
+  const apmTransaction = apm.startTransaction('request.process');
   let request!: RuleRequest;
   loggerService.log('Start - Handle execute request');
   const startTime = process.hrtime.bigint();
@@ -140,5 +140,5 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   } finally {
     spanResponse?.end();
   }
-  spanRuleExec?.end();
+  apmTransaction?.end();
 };
