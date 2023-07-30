@@ -86,6 +86,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       subRuleRef: '.err',
       reason: (error as Error).message,
     };
+    const spanHandleResponse = apm.startSpan('server.handleResponse');
     await server.handleResponse(
       JSON.stringify({
         transaction: request.transaction,
@@ -93,6 +94,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
         networkMap: request.networkMap,
       }),
     );
+    spanHandleResponse?.end();
     return;
   }
 
