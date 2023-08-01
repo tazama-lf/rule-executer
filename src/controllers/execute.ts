@@ -17,6 +17,7 @@ const calculateDuration = (startTime: bigint): number => {
 };
 
 export const execute = async (reqObj: unknown): Promise<void> => {
+  const apmTransaction = apm.startTransaction('request.process');
   let request!: RuleRequest;
   loggerService.log('Start - Handle execute request');
   const startTime = process.hrtime.bigint();
@@ -64,23 +65,28 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   })();
 
   let ruleConfig: RuleConfig | undefined;
+  const spanRuleConfig = apm.startSpan('db.get.ruleconfig');
   try {
     if (!ruleRes.cfg) throw new Error('Rule not found in network map');
     const sRuleConfig = await databaseManager.getRuleConfig(
       ruleRes.id,
       ruleRes.cfg,
     );
+    spanRuleConfig?.end();
     ruleConfig = unwrap<RuleConfig>(sRuleConfig);
-    if (!ruleConfig)
+    if (!ruleConfig) {
       throw new Error('Rule processor configuration not retrievable');
+    }
     ruleRes.desc = getReadableDescription(ruleConfig);
   } catch (error) {
+    spanRuleConfig?.end();
     ruleRes.prcgTm = calculateDuration(startTime);
     ruleRes = {
       ...ruleRes,
       subRuleRef: '.err',
       reason: (error as Error).message,
     };
+    const spanHandleResponse = apm.startSpan('server.handleResponse');
     await server.handleResponse(
       JSON.stringify({
         transaction: request.transaction,
@@ -88,9 +94,11 @@ export const execute = async (reqObj: unknown): Promise<void> => {
         networkMap: request.networkMap,
       }),
     );
+    spanHandleResponse?.end();
     return;
   }
-  const span = apm.startSpan('handleTransaction');
+
+  const span = apm.startSpan('rule.findResult');
   try {
     ruleRes = await handleTransaction(
       request,
@@ -116,6 +124,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     loggerService.log('End - Handle execute request');
   }
 
+  const spanResponse = apm.startSpan('server.handleResponse');
   try {
     await server.handleResponse({
       ...request,
@@ -130,5 +139,8 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       reason: (error as Error).message,
       result: false,
     };
+  } finally {
+    spanResponse?.end();
   }
+  apmTransaction?.end();
 };
