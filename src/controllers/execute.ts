@@ -33,7 +33,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       metaData: message?.metaData,
     };
     traceParent = request.metaData.traceParent;
-    loggerService.debug(JSON.stringify(traceParent));
+    loggerService.log(JSON.stringify(traceParent));
   } catch (err) {
     const failMessage = 'Failed to parse execution request.';
     loggerService.error(failMessage, err, 'executeController');
