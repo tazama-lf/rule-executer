@@ -33,13 +33,13 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       metaData: message?.metaData,
     };
     traceParent = request.metaData.traceParent;
-    loggerService.log(JSON.stringify(traceParent));
   } catch (err) {
     const failMessage = 'Failed to parse execution request.';
     loggerService.error(failMessage, err, 'executeController');
     loggerService.log('End - Handle execute request');
     return;
   }
+  loggerService.log(JSON.stringify(traceParent));
   const apmTransaction = apm.startTransaction('request.process', {
     childOf: traceParent,
   });
