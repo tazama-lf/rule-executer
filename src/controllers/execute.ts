@@ -2,7 +2,6 @@ import { getReadableDescription } from '@frmscoe/frms-coe-lib/lib/helpers/RuleCo
 import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
 import {
   type RuleConfig,
-  type RuleRequest,
   type RuleResult,
 } from '@frmscoe/frms-coe-lib/lib/interfaces';
 import apm from 'elastic-apm-node';
@@ -32,7 +31,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       DataCache: message.DataCache,
       metaData: message?.metaData,
     };
-    traceParent = request.metaData.traceParent;
+    traceParent = request.metaData?.traceParent;
   } catch (err) {
     const failMessage = 'Failed to parse execution request.';
     loggerService.error(failMessage, err, 'executeController');
