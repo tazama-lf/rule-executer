@@ -17,8 +17,8 @@ const calculateDuration = (startTime: bigint): number => {
 };
 
 export const execute = async (reqObj: unknown): Promise<void> => {
-  const apmTransaction = apm.startTransaction('request.process');
-  let request!: RuleRequest;
+  let request;
+  let traceParent = '';
   loggerService.log('Start - Handle execute request');
   const startTime = process.hrtime.bigint();
 
@@ -32,12 +32,17 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       DataCache: message.DataCache,
       metaData: message?.metaData,
     };
+    traceParent = request.metaData.traceParent;
+    loggerService.debug(JSON.stringify(traceParent));
   } catch (err) {
     const failMessage = 'Failed to parse execution request.';
     loggerService.error(failMessage, err, 'executeController');
     loggerService.log('End - Handle execute request');
     return;
   }
+  const apmTransaction = apm.startTransaction('request.process', {
+    childOf: traceParent,
+  });
 
   let ruleRes: RuleResult = {
     id: `${config.ruleName}@${config.ruleVersion}`,
