@@ -39,7 +39,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     loggerService.log('End - Handle execute request');
     return;
   }
-  loggerService.log(JSON.stringify(traceParent));
+  loggerService.log(`traceParent: ${JSON.stringify(traceParent)}`);
   const apmTransaction = apm.startTransaction('request.process', {
     childOf: traceParent,
   });
