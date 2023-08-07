@@ -129,8 +129,9 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     loggerService.log('End - Handle execute request');
   }
 
-  const spanResponse = apm.startSpan('server.handleResponse');
+  const spanResponse = apm.startSpan('send.to.typroc');
   try {
+    request.metaData.traceParent = apm.currentTraceparent ?? '';
     await server.handleResponse({
       ...request,
       ruleResult: ruleRes,
