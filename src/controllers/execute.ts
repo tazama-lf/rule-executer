@@ -2,7 +2,6 @@ import { getReadableDescription } from '@frmscoe/frms-coe-lib/lib/helpers/RuleCo
 import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
 import {
   type RuleConfig,
-  type RuleRequest,
   type RuleResult,
 } from '@frmscoe/frms-coe-lib/lib/interfaces';
 import apm from 'elastic-apm-node';
@@ -17,8 +16,8 @@ const calculateDuration = (startTime: bigint): number => {
 };
 
 export const execute = async (reqObj: unknown): Promise<void> => {
-  const apmTransaction = apm.startTransaction('request.process');
-  let request!: RuleRequest;
+  let request;
+  let traceParent = '';
   loggerService.log('Start - Handle execute request');
   const startTime = process.hrtime.bigint();
 
@@ -32,12 +31,17 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       DataCache: message.DataCache,
       metaData: message?.metaData,
     };
+    traceParent = request.metaData?.traceParent;
   } catch (err) {
     const failMessage = 'Failed to parse execution request.';
     loggerService.error(failMessage, err, 'executeController');
     loggerService.log('End - Handle execute request');
     return;
   }
+  loggerService.log(`traceParent: ${JSON.stringify(traceParent)}`);
+  const apmTransaction = apm.startTransaction('request.process', {
+    childOf: traceParent,
+  });
 
   let ruleRes: RuleResult = {
     id: `${config.ruleName}@${config.ruleVersion}`,
@@ -124,8 +128,9 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     loggerService.log('End - Handle execute request');
   }
 
-  const spanResponse = apm.startSpan('server.handleResponse');
+  const spanResponse = apm.startSpan('send.to.typroc');
   try {
+    request.metaData.traceParent = apm.currentTraceparent ?? '';
     await server.handleResponse({
       ...request,
       ruleResult: ruleRes,
