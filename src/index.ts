@@ -1,10 +1,10 @@
+import './apm';
 import { config } from './config';
 import NodeCache from 'node-cache';
 import {
   StartupFactory,
   type IStartupService,
 } from '@frmscoe/frms-coe-startup-lib';
-import apm from 'elastic-apm-node';
 import {
   CreateDatabaseManager,
   type DatabaseManagerInstance,
@@ -14,15 +14,6 @@ import { execute } from './controllers/execute';
 
 export const loggerService: LoggerService = new LoggerService();
 export let server: IStartupService;
-if (config.apmLogging) {
-  apm.start({
-    serviceName: config.functionName,
-    secretToken: config.apmSecretToken,
-    serverUrl: config.apmURL,
-    usePathAsTransactionName: true,
-    transactionIgnoreUrls: ['/health'],
-  });
-}
 
 const databaseManagerConfig = {
   redisConfig: {
