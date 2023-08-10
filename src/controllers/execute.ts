@@ -39,9 +39,12 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     return;
   }
   loggerService.log(`traceParent: ${JSON.stringify(traceParent)}`);
-  const apmTransaction = apm.startTransaction('request.process', {
-    childOf: traceParent,
-  });
+  const apmTransaction = apm.startTransaction(
+    `rule.process.${config.ruleName}`,
+    {
+      childOf: traceParent,
+    },
+  );
 
   let ruleRes: RuleResult = {
     id: `${config.ruleName}@${config.ruleVersion}`,
@@ -69,7 +72,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   })();
 
   let ruleConfig: RuleConfig | undefined;
-  const spanRuleConfig = apm.startSpan('db.get.ruleconfig');
+  const spanRuleConfig = apm.startSpan(`db.get.ruleconfig.${ruleRes.id}`);
   try {
     if (!ruleRes.cfg) throw new Error('Rule not found in network map');
     const sRuleConfig = await databaseManager.getRuleConfig(
@@ -90,7 +93,9 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       subRuleRef: '.err',
       reason: (error as Error).message,
     };
-    const spanHandleResponse = apm.startSpan('server.handleResponse');
+    const spanHandleResponse = apm.startSpan(
+      `handleResponse.${ruleRes.id}.err`,
+    );
     await server.handleResponse(
       JSON.stringify({
         transaction: request.transaction,
@@ -102,7 +107,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     return;
   }
 
-  const span = apm.startSpan('rule.findResult');
+  const span = apm.startSpan(`rule.${ruleRes.id}.findResult`);
   try {
     ruleRes = await handleTransaction(
       request,
@@ -128,7 +133,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     loggerService.log('End - Handle execute request');
   }
 
-  const spanResponse = apm.startSpan('send.to.typroc');
+  const spanResponse = apm.startSpan(`send.to.typroc.${ruleRes.id}`);
   try {
     request.metaData.traceParent = apm.currentTraceparent ?? '';
     await server.handleResponse({
