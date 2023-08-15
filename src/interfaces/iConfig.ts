@@ -1,8 +1,11 @@
 import { type RedisConfig } from '@frmscoe/frms-coe-lib/lib/interfaces';
 export interface IConfig {
   restPort: number;
-  logstashHost: string;
-  logstashPort: number;
+  logger: {
+    logstashHost: string;
+    logstashPort: number;
+    logstashLevel: string;
+  };
   functionName: string;
   ruleName: string;
   apmLogging: boolean;
