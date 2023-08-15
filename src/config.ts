@@ -9,8 +9,11 @@ dotenv({
 
 export const config: IConfig = {
   ruleName: process.env.RULE_NAME as string,
-  logstashHost: process.env.LOGSTASH_HOST as string,
-  logstashPort: parseInt(process.env.LOGSTASH_PORT || '0', 10),
+  logger: {
+    logstashHost: process.env.LOGSTASH_HOST as string,
+    logstashPort: parseInt(process.env.LOGSTASH_PORT ?? '0', 10),
+    logstashLevel: (process.env.LOGSTASH_LEVEL as string) || 'info',
+  },
   restPort: parseInt(process.env.REST_PORT || '3000', 10),
   functionName: process.env.FUNCTION_NAME as string,
   apmLogging: process.env.APM_LOGGING === 'true',
