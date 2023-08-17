@@ -77,6 +77,8 @@ ENV ACK_POLICY=Explicit
 ENV PRODUCER_STORAGE=File
 ENV PRODUCER_RETENTION_POLICY=Workqueue
 
+ENV QUOTING=false
+
 ENV prefix_logs="false"
 
 # Set healthcheck command
