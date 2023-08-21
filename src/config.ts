@@ -14,7 +14,6 @@ export const config: IConfig = {
     logstashPort: parseInt(process.env.LOGSTASH_PORT ?? '0', 10),
     logstashLevel: (process.env.LOGSTASH_LEVEL as string) || 'info',
   },
-  restPort: parseInt(process.env.REST_PORT || '3000', 10),
   functionName: process.env.FUNCTION_NAME as string,
   apmLogging: process.env.APM_LOGGING === 'true',
   apmSecretToken: process.env.APM_SECRET_TOKEN as string,
@@ -26,12 +25,9 @@ export const config: IConfig = {
   dbURL: process.env.DATABASE_URL as string,
   dbUser: process.env.DATABASE_USER as string,
   dbPassword: process.env.DATABASE_PASSWORD as string,
-  collectionNamePacs008: process.env.COLLECTION_NAME_PACS008 as string,
   dbCertPath: process.env.DATABASE_CERT_PATH as string,
-  configCollection: process.env.CONFIG_COLLECTION as string,
   configDb: process.env.CONFIG_DATABASE as string,
   graphDb: process.env.GRAPH_DATABASE as string,
-  graphCollection: process.env.GRAPH_COLLECTION as string,
   redis: {
     db: parseInt(process.env.REDIS_DB!, 10) || 0,
     servers: JSON.parse(

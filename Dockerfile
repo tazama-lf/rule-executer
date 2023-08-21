@@ -40,34 +40,40 @@ COPY service.yaml ./
 # Turn down the verbosity to default level.
 ENV NPM_CONFIG_LOGLEVEL warn
 
-ENV REST_PORT=3000
 ENV FUNCTION_NAME="rule-executer-rel-1-0-0"
 ENV RULE_VERSION="1.0.0"
 ENV RULE_NAME="901"
-ENV NODE_ENV="production"
+ENV NODE_ENV=production
+
+# Apm
 ENV APM_LOGGING=true
-ENV APM_URL=http://apm-server.development:8200
+ENV APM_URL=http://apm-server.development.svc.cluster.local:8200/
 ENV APM_SECRET_TOKEN=
-ENV LOGSTASH_HOST="logstash.development:8080"
+
+#Logstash
+ENV LOGSTASH_HOST=logstash.development.svc.cluster.local
 ENV LOGSTASH_PORT=8080
 ENV LOGSTASH_LEVEL='info'
-ENV CACHE_TTL=300
+
+
+# Database
 ENV DATABASE_NAME="transactionHistory"
 ENV DATABASE_URL=
 ENV DATABASE_USER="root"
 ENV DATABASE_PASSWORD=
 ENV DATABASE_CERT_PATH="/usr/local/share/ca-certificates/ca-certificates.crt"
-ENV COLLECTION_NAME_PACS008=transactionHistoryPacs008
 ENV CONFIG_DATABASE=Configuration
 ENV CONFIG_COLLECTION=configuration
 ENV GRAPH_DATABASE=pseudonyms
-ENV GRAPH_COLLECTION=transactionRelationship
 
+# Redis
 ENV REDIS_DB=0
 ENV REDIS_AUTH=
 ENV REDIS_SERVERS=
 ENV REDIS_IS_CLUSTER=
+ENV CACHE_TTL=300
 
+#Nats
 ENV STARTUP_TYPE=nats
 ENV SERVER_URL=0.0.0.0:4222
 ENV PRODUCER_STREAM=
