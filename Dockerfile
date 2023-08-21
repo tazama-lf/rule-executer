@@ -65,13 +65,14 @@ ENV DATABASE_CERT_PATH="/usr/local/share/ca-certificates/ca-certificates.crt"
 ENV CONFIG_DATABASE=Configuration
 ENV CONFIG_COLLECTION=configuration
 ENV GRAPH_DATABASE=pseudonyms
+ENV CACHE_TTL=300
 
 # Redis
 ENV REDIS_DB=0
 ENV REDIS_AUTH=
 ENV REDIS_SERVERS=
 ENV REDIS_IS_CLUSTER=
-ENV CACHE_TTL=300
+
 
 #Nats
 ENV STARTUP_TYPE=nats
