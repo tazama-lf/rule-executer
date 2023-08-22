@@ -19,8 +19,8 @@ jobs:
         node-version: [16]
     steps:
       - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2 
-        with: 
+      - uses: pnpm/action-setup@v2
+        with:
           version: 7
       - name: Setup Node.js (.npmrc)
         uses: actions/setup-node@v3
