@@ -4,7 +4,7 @@ import {
   type RuleConfig,
   type RuleResult,
 } from '@frmscoe/frms-coe-lib/lib/interfaces';
-import apm from 'elastic-apm-node';
+import apm from '../apm';
 import { handleTransaction } from 'rule/lib';
 import { databaseManager, loggerService, server } from '..';
 import { config } from '../config';
@@ -80,7 +80,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       ruleRes.cfg,
     );
     spanRuleConfig?.end();
-    ruleConfig = unwrap<RuleConfig>(sRuleConfig);
+    ruleConfig = unwrap<RuleConfig>(sRuleConfig as RuleConfig[][]);
     if (!ruleConfig) {
       throw new Error('Rule processor configuration not retrievable');
     }
@@ -135,7 +135,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
 
   const spanResponse = apm.startSpan(`send.to.typroc.${ruleRes.id}`);
   try {
-    request.metaData.traceParent = apm.currentTraceparent ?? '';
+    request.metaData.traceParent = apm.getCurrentTraceparent();
     await server.handleResponse({
       ...request,
       ruleResult: ruleRes,
