@@ -6,6 +6,7 @@ const apm = new Apm({
   secretToken: config.apmSecretToken,
   serverUrl: config.apmURL,
   usePathAsTransactionName: true,
+  active: Boolean(config.apmLogging),
   transactionIgnoreUrls: ['/health'],
 });
 
