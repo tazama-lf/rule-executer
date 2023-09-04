@@ -87,6 +87,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     ruleRes.desc = getReadableDescription(ruleConfig);
   } catch (error) {
     spanRuleConfig?.end();
+    loggerService.error('Error while getting rule configuration', error);
     ruleRes.prcgTm = calculateDuration(startTime);
     ruleRes = {
       ...ruleRes,
@@ -96,13 +97,11 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     const spanHandleResponse = apm.startSpan(
       `handleResponse.${ruleRes.id}.err`,
     );
-    await server.handleResponse(
-      JSON.stringify({
-        transaction: request.transaction,
-        ruleResult: ruleRes,
-        networkMap: request.networkMap,
-      }),
-    );
+    await server.handleResponse({
+      transaction: request.transaction,
+      ruleResult: ruleRes,
+      networkMap: request.networkMap,
+    });
     spanHandleResponse?.end();
     return;
   }
