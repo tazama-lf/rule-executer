@@ -106,7 +106,10 @@ const config: Config.InitialOptions = {
   // ],
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
-  // moduleNameMapper: {},
+  moduleNameMapper: {
+    '^ioredis$': '<rootDir>/__tests__/__mocks__/ioredis.js',
+    '^arangojs$': '<rootDir>/__tests__/__mocks__/arango.js',
+  },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
   // modulePathIgnorePatterns: [],
@@ -148,7 +151,7 @@ const config: Config.InitialOptions = {
   // runner: "jest-runner",
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
-  setupFiles: ['<rootDir>/setup.jest.js'],
+  // setupFiles: [''],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
   // setupFilesAfterEnv: ['./jest.setup.redis-mock.js'],
