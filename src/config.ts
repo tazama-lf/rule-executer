@@ -15,7 +15,7 @@ export const config: IConfig = {
     logstashLevel: (process.env.LOGSTASH_LEVEL as string) || 'info',
   },
   functionName: process.env.FUNCTION_NAME as string,
-  apmLogging: process.env.APM_LOGGING === 'true',
+  apmLogging: process.env.APM_ACTIVE === 'true',
   apmSecretToken: process.env.APM_SECRET_TOKEN as string,
   ruleVersion: process.env.RULE_VERSION as string,
   cacheTTL: parseInt(process.env.CACHE_TTL || '3000', 10),
