@@ -23,8 +23,8 @@
   "keywords": [],
   "license": "ISC",
   "dependencies": {
-    "@frmscoe/frms-coe-lib": "^0.4.6",
-    "@frmscoe/frms-coe-startup-lib": "github:cshezi/startup-lib-nats-from",
+    "@frmscoe/frms-coe-lib": "^1.0.0",
+    "@frmscoe/frms-coe-startup-lib": "^2.0.0",
     "@log4js-node/logstash-http": "^1.1.0",
     "dotenv": "^16.0.3",
     "log4js": "^6.9.1",
