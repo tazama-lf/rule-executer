@@ -39,6 +39,8 @@ const getMockRequest = () => {
   return quote;
 };
 
+const loggerService: LoggerService = new LoggerService();
+
 beforeAll(async () => {
   await initializeDB();
   runServer();
@@ -61,7 +63,7 @@ describe('Logic Service', () => {
             ruleResult: RuleResult,
           ) => RuleResult,
           ruleRes: RuleResult,
-          loggerService: LoggerService,
+          loggerService,
           ruleConfig: RuleConfig,
           databaseManager: DatabaseManagerInstance<ManagerConfig>,
         ): Promise<RuleResult> => {
