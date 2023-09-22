@@ -53,7 +53,8 @@ let databaseManager: DatabaseManagerInstance<typeof databaseManagerConfig>;
 
 const runServer = async (): Promise<void> => {
   server = new StartupFactory();
-  if (config.nodeEnv !== 'test')
+  if (config.nodeEnv !== 'test') {
+    let isConnected = false;
     for (let retryCount = 0; retryCount < 10; retryCount++) {
       loggerService.log(`Connecting to nats server...`);
       if (!(await server.init(execute))) {
@@ -61,9 +62,15 @@ const runServer = async (): Promise<void> => {
         await new Promise((resolve) => setTimeout(resolve, 5000));
       } else {
         loggerService.log(`Connected to nats`);
+        isConnected = true;
         break;
       }
     }
+
+    if (!isConnected) {
+      throw new Error('Unable to connect to nats after 10 retries');
+    }
+  }
 };
 
 export const initializeDB = async (): Promise<void> => {
@@ -88,9 +95,10 @@ if (process.env.NODE_ENV !== 'test') {
   (async () => {
     try {
       await initializeDB();
-      runServer();
+      await runServer();
     } catch (err) {
-      loggerService.error('Error while starting HTTP server', err as Error);
+      loggerService.error('Error while starting services', err as Error);
+      process.exit(1);
     }
   })();
 }
