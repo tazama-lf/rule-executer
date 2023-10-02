@@ -10,7 +10,7 @@
     "cleanup": "rm -rf build template jest.config.js jest.config.js.map node_modules package-lock.json",
     "start": "bun ./src/index.ts",
     "start:dev": "env $(cat .env.template) nodemon",
-    "start:perf":"bun --inspect ./src/index.ts",
+    "start:perf": "bun --inspect ./src/index.ts",
     "fix": "bun run fix:prettier && bun run fix:eslint",
     "fix:eslint": "eslint --fix \"**/*.ts\"",
     "fix:prettier": "prettier --write \"**/*.ts\"",
@@ -29,7 +29,7 @@
     "dotenv": "^16.0.3",
     "log4js": "^6.9.1",
     "node-cache": "^5.1.2",
-    "rule": "npm:@frmscoe/rule-901@^1.0.5",
+    "rule": "npm:@frmscoe/rule-901",
     "tslib": "^2.6.0"
   },
   "devDependencies": {

@@ -13,7 +13,7 @@ COPY bunfig.toml ./
 ARG GH_TOKEN
 RUN sed -i "s/\${GH_TOKEN}/$GH_TOKEN/g" ./bunfig.toml
 
-RUN bun install
+RUN bun install --production
 
 
 # Stage 2 (Remove Unneeded Node Modules)
@@ -37,7 +37,7 @@ COPY ./src ./src
 COPY ./package*.json ./
 COPY ./tsconfig.json ./
 COPY bunfig.toml ./
-RUN bun install
+RUN bun install --production
 # Turn down the verbosity to default level.
 ENV NPM_CONFIG_LOGLEVEL warn
 
@@ -55,6 +55,7 @@ ENV APM_SECRET_TOKEN=
 ENV LOGSTASH_HOST=logstash.development.svc.cluster.local
 ENV LOGSTASH_PORT=8080
 ENV LOGSTASH_LEVEL='info'
+
 
 
 # Database
