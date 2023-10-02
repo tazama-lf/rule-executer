@@ -1,0 +1,5 @@
+[install.scopes]
+"@frmscoe" = {url="https://npm.pkg.github.com/:_authToken=${GH_TOKEN}"}
+[test]
+coverageThreshold = 0.9
+preload = ["./__tests__/__mocks__/arango.js", "./__tests__/__mocks__/ioredis.js"]

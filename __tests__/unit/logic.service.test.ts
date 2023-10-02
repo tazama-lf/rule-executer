@@ -14,6 +14,7 @@ import { handleTransaction } from 'rule/lib';
 import { initializeDB, runServer, server } from '../../src';
 import { config } from '../../src/config';
 import { execute } from '../../src/controllers/execute';
+import { expect,describe, afterAll, beforeAll,beforeEach,jest,it,mock } from 'bun:test';
 
 const getMockRequest = () => {
   const quote: RuleRequest = {
@@ -51,7 +52,7 @@ afterAll(() => {});
 describe('Logic Service', () => {
   beforeEach(() => {
     config.ruleVersion = '1.0.0';
-    jest.mock('ioredis', () => ioredis);
+    mock(() => ioredis)
     jest
       .fn(handleTransaction)
       .mockImplementation(
