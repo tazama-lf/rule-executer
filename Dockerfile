@@ -13,7 +13,7 @@ COPY bunfig.toml ./
 ARG GH_TOKEN
 RUN sed -i "s/\${GH_TOKEN}/$GH_TOKEN/g" ./bunfig.toml
 
-RUN bun install --frozen-lockfile
+RUN bun install
 
 
 # Stage 2 (Remove Unneeded Node Modules)
@@ -37,7 +37,7 @@ COPY ./src ./src
 COPY ./package*.json ./
 COPY ./tsconfig.json ./
 COPY bunfig.toml ./
-RUN bun install --frozen-lockfile
+RUN bun install
 # Turn down the verbosity to default level.
 ENV NPM_CONFIG_LOGLEVEL warn
 
