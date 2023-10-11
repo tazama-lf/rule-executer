@@ -23,13 +23,13 @@
   "keywords": [],
   "license": "ISC",
   "dependencies": {
-    "@frmscoe/frms-coe-lib": "^1.2.5",
+    "@frmscoe/frms-coe-lib": "^2.0.0",
     "@frmscoe/frms-coe-startup-lib": "^2.0.1",
     "@log4js-node/logstash-http": "^1.1.0",
     "dotenv": "^16.0.3",
     "log4js": "^6.9.1",
     "node-cache": "^5.1.2",
-    "rule": "npm:@frmscoe/rule-901@^1.0.5",
+    "rule": "npm:@frmscoe/rule-901@^1.0.6",
     "tslib": "^2.6.0"
   },
   "devDependencies": {
