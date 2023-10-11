@@ -1,4 +1,3 @@
-import { getReadableDescription } from '@frmscoe/frms-coe-lib/lib/helpers/RuleConfig';
 import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
 import {
   type RuleConfig,
@@ -52,7 +51,6 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     result: false,
     subRuleRef: '.err',
     reason: 'Unhandled rule result outcome',
-    desc: '',
     prcgTm: -1,
   };
 
@@ -84,7 +82,6 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     if (!ruleConfig) {
       throw new Error('Rule processor configuration not retrievable');
     }
-    ruleRes.desc = getReadableDescription(ruleConfig);
   } catch (error) {
     spanRuleConfig?.end();
     loggerService.error('Error while getting rule configuration', error);
