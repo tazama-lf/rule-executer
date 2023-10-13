@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
 import {
   type RuleConfig,
