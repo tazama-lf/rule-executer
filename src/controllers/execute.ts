@@ -132,6 +132,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   const spanResponse = apm.startSpan(`send.to.typroc.${ruleRes.id}`);
   try {
     request.metaData.traceParent = apm.getCurrentTraceparent();
+    delete ruleRes.reason;
     await server.handleResponse({
       ...request,
       ruleResult: ruleRes,
