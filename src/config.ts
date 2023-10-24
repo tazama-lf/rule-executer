@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import path from 'path';
 import { config as dotenv } from 'dotenv';
 import { type IConfig } from './interfaces/iConfig';

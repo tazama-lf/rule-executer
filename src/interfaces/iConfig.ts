@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import { type RedisConfig } from '@frmscoe/frms-coe-lib/lib/interfaces';
 export interface IConfig {
   logger: {

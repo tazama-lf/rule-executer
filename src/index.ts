@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0
 import './apm';
 import { config } from './config';
 import NodeCache from 'node-cache';
