@@ -1,6 +1,6 @@
 {
   "name": "rule-executer",
-  "version": "0.1.2",
+  "version": "1.2.0",
   "description": "Actio FRM Rule Executer",
   "main": "build/index.js",
   "types": "build/index.d.ts",
