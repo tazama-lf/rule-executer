@@ -40,7 +40,7 @@ COPY service.yaml ./
 # Turn down the verbosity to default level.
 ENV NPM_CONFIG_LOGLEVEL warn
 
-ENV FUNCTION_NAME="rule-executer-rel-1-0-0"
+ENV FUNCTION_NAME="rule-executer"
 ENV RULE_VERSION="1.0.0"
 ENV RULE_NAME="901"
 ENV NODE_ENV=production
