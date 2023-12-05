@@ -53,18 +53,27 @@ const databaseManagerConfig = {
 };
 
 let databaseManager: DatabaseManagerInstance<typeof databaseManagerConfig>;
+const logContext = 'startup';
 
 const runServer = async (): Promise<void> => {
   server = new StartupFactory();
   if (config.nodeEnv !== 'test') {
     let isConnected = false;
     for (let retryCount = 0; retryCount < 10; retryCount++) {
-      loggerService.log(`Connecting to nats server...`);
+      loggerService.log(
+        `Connecting to nats server...`,
+        logContext,
+        config.functionName,
+      );
       if (!(await server.init(execute))) {
-        loggerService.warn(`Unable to connect, retry count: ${retryCount}`);
+        loggerService.warn(
+          `Unable to connect, retry count: ${retryCount}`,
+          logContext,
+          config.functionName,
+        );
         await new Promise((resolve) => setTimeout(resolve, 5000));
       } else {
-        loggerService.log(`Connected to nats`);
+        loggerService.log(`Connected to nats`, logContext, config.functionName);
         isConnected = true;
         break;
       }
@@ -79,18 +88,26 @@ const runServer = async (): Promise<void> => {
 export const initializeDB = async (): Promise<void> => {
   const manager = await CreateDatabaseManager(databaseManagerConfig);
   databaseManager = manager;
-  loggerService.log(JSON.stringify(databaseManager.isReadyCheck()));
+  loggerService.log(
+    JSON.stringify(databaseManager.isReadyCheck()),
+    logContext,
+    config.functionName,
+  );
 };
 
 process.on('uncaughtException', (err) => {
   loggerService.error(
     `process on uncaughtException error: ${JSON.stringify(err)}`,
+    logContext,
+    config.functionName,
   );
 });
 
 process.on('unhandledRejection', (err) => {
   loggerService.error(
     `process on unhandledRejection error: ${JSON.stringify(err)}`,
+    logContext,
+    config.functionName,
   );
 });
 
@@ -100,7 +117,12 @@ if (process.env.NODE_ENV !== 'test') {
       await initializeDB();
       await runServer();
     } catch (err) {
-      loggerService.error('Error while starting services', err as Error);
+      loggerService.error(
+        'Error while starting services',
+        err as Error,
+        logContext,
+        config.functionName,
+      );
       process.exit(1);
     }
   })();

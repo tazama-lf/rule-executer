@@ -18,7 +18,12 @@ const calculateDuration = (startTime: bigint): number => {
 export const execute = async (reqObj: unknown): Promise<void> => {
   let request;
   let traceParent = '';
-  loggerService.log('Start - Handle execute request');
+  const context = 'execute()';
+  loggerService.log(
+    'Start - Handle execute request',
+    context,
+    config.functionName,
+  );
   const startTime = process.hrtime.bigint();
 
   // Get required information from the incoming request
@@ -34,11 +39,14 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     traceParent = request.metaData?.traceParent;
   } catch (err) {
     const failMessage = 'Failed to parse execution request.';
-    loggerService.error(failMessage, err, 'executeController');
-    loggerService.log('End - Handle execute request');
+    loggerService.error(failMessage, err, context, config.functionName);
+    loggerService.log(
+      'End - Handle execute request',
+      context,
+      config.functionName,
+    );
     return;
   }
-  loggerService.log(`traceParent: ${JSON.stringify(traceParent)}`);
   const apmTransaction = apm.startTransaction(
     `rule.process.${config.ruleName}`,
     {
@@ -85,7 +93,12 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     }
   } catch (error) {
     spanRuleConfig?.end();
-    loggerService.error('Error while getting rule configuration', error);
+    loggerService.error(
+      'Error while getting rule configuration',
+      error,
+      context,
+      config.functionName,
+    );
     ruleRes.prcgTm = calculateDuration(startTime);
     ruleRes = {
       ...ruleRes,
@@ -119,7 +132,12 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   } catch (error) {
     span?.end();
     const failMessage = 'Failed to process execution request.';
-    loggerService.error(failMessage, error, 'executeController');
+    loggerService.error(
+      failMessage,
+      error,
+      'executeController',
+      config.functionName,
+    );
     ruleRes = {
       ...ruleRes,
       subRuleRef: '.err',
@@ -127,7 +145,11 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     };
   } finally {
     ruleRes.prcgTm = calculateDuration(startTime);
-    loggerService.log('End - Handle execute request');
+    loggerService.log(
+      'End - Handle execute request',
+      context,
+      config.functionName,
+    );
   }
 
   const spanResponse = apm.startSpan(`send.to.typroc.${ruleRes.id}`);
@@ -141,7 +163,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     });
   } catch (error) {
     const failMessage = 'Failed to send to Typology Processor.';
-    loggerService.error(failMessage, error, 'executeController');
+    loggerService.error(failMessage, error, context, config.functionName);
     ruleRes = {
       ...ruleRes,
       subRuleRef: '.err',
