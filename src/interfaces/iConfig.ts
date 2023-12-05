@@ -22,4 +22,5 @@ export interface IConfig {
   configDb: string;
   graphDb: string;
   redis: RedisConfig;
+  sidecarHost: string;
 }
