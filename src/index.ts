@@ -13,7 +13,9 @@ import {
 } from '@frmscoe/frms-coe-lib';
 import { execute } from './controllers/execute';
 
-export const loggerService: LoggerService = new LoggerService();
+export const loggerService: LoggerService = new LoggerService(
+  config.sidecarHost,
+);
 export let server: IStartupService;
 
 const databaseManagerConfig = {

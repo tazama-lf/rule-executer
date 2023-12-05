@@ -87,6 +87,7 @@ ENV PRODUCER_RETENTION_POLICY=Workqueue
 ENV QUOTING=false
 
 ENV prefix_logs="false"
+ENV SIDECAR_HOST=0.0.0.0:5000
 
 # Set healthcheck command
 HEALTHCHECK --interval=60s CMD [ -e /tmp/.lock ] || exit 1
