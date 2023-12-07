@@ -33,7 +33,7 @@ export const config: IConfig = {
     db: parseInt(process.env.REDIS_DB!, 10) || 0,
     servers: JSON.parse(
       (process.env.REDIS_SERVERS as string) ||
-      '[{"hostname": "127.0.0.1", "port":6379}]',
+        '[{"hostname": "127.0.0.1", "port":6379}]',
     ),
     password: process.env.REDIS_AUTH as string,
     isCluster: process.env.REDIS_IS_CLUSTER === 'true',
