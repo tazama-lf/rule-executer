@@ -65,7 +65,14 @@ const runServer = async (): Promise<void> => {
         logContext,
         config.functionName,
       );
-      if (!(await server.init(execute))) {
+      if (
+        !(await server.init(
+          execute,
+          loggerService,
+          [`sub-rule-${config.ruleName}@${config.ruleVersion}`],
+          `pub-rule-${config.ruleName}@${config.ruleVersion}`,
+        ))
+      ) {
         loggerService.warn(
           `Unable to connect, retry count: ${retryCount}`,
           logContext,
