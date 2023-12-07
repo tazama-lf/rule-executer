@@ -68,9 +68,9 @@ const runServer = async (): Promise<void> => {
       if (
         !(await server.init(
           execute,
-          undefined,
-          ['sub-rule-' + config.ruleName],
-          'pub-rule-' + config.ruleName,
+          loggerService,
+          [`sub-rule-${config.ruleName}@${config.ruleVersion}`],
+          `pub-rule-${config.ruleName}@${config.ruleVersion}`,
         ))
       ) {
         loggerService.warn(
