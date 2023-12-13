@@ -52,7 +52,7 @@
     "nodemon": "^2.0.22",
     "prettier": "^3.0.0",
     "ts-jest": "^29.1.0",
-    "typescript": "^5.0.4"
+    "typescript": "^5.3.3"
   },
   "lint-staged": {
     "*.ts": [
