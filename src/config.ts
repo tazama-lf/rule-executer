@@ -23,13 +23,13 @@ export const config: IConfig = {
   apmURL: process.env.APM_URL as string,
   nodeEnv: process.env.NODE_ENV as string,
   transactionHistoryCertPath: process.env
-    .TRANSACTIONHISTORY_DATABASE_CERT_PATH as string,
-  transactionHistoryName: process.env.TRANSACTIONHISTORY_DATABASE as string,
+    .TRANSACTION_HISTORY_DATABASE_CERT_PATH as string,
+  transactionHistoryName: process.env.TRANSACTION_HISTORY_DATABASE as string,
   transactionHistoryPassword: process.env
-    .TRANSACTIONHISTORY_DATABASE_PASSWORD as string,
-  transactionHistoryURL: process.env.TRANSACTIONHISTORY_DATABASE_URL as string,
+    .TRANSACTION_HISTORY_DATABASE_PASSWORD as string,
+  transactionHistoryURL: process.env.TRANSACTION_HISTORY_DATABASE_URL as string,
   transactionHistoryUser: process.env
-    .TRANSACTIONHISTORY_DATABASE_USER as string,
+    .TRANSACTION_HISTORY_DATABASE_USER as string,
   configDb: process.env.CONFIG_DATABASE as string,
   configurationCertPath: process.env.CONFIG_DATABASE_CERT_PATH as string,
   configurationURL: process.env.CONFIG_DATABASE_URL as string,
