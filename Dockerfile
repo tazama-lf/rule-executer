@@ -55,7 +55,6 @@ ENV LOGSTASH_HOST=logstash.development.svc.cluster.local
 ENV LOGSTASH_PORT=8080
 ENV LOGSTASH_LEVEL='info'
 
-
 # Database
 ENV TRANSACTIONHISTORY_CERT_PATH="/usr/local/share/ca-certificates/ca-certificates.crt"
 ENV TRANSACTIONHISTORY_DATABASE='transactionHistory'
@@ -77,13 +76,11 @@ ENV PSEUDONYMS_PASSWORD=''
 
 ENV CACHE_TTL=300
 
-
 # Redis
 ENV REDIS_DB=0
 ENV REDIS_AUTH=
 ENV REDIS_SERVERS=
 ENV REDIS_IS_CLUSTER=
-
 
 #Nats
 ENV STARTUP_TYPE=nats
