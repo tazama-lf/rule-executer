@@ -57,15 +57,26 @@ ENV LOGSTASH_LEVEL='info'
 
 
 # Database
-ENV DATABASE_NAME="transactionHistory"
-ENV DATABASE_URL=
-ENV DATABASE_USER="root"
-ENV DATABASE_PASSWORD=
-ENV DATABASE_CERT_PATH="/usr/local/share/ca-certificates/ca-certificates.crt"
-ENV CONFIG_DATABASE=Configuration
-ENV CONFIG_COLLECTION=configuration
-ENV GRAPH_DATABASE=pseudonyms
+ENV TRANSACTIONHISTORY_CERT_PATH="/usr/local/share/ca-certificates/ca-certificates.crt"
+ENV TRANSACTIONHISTORY_DATABASE='transactionHistory'
+ENV TRANSACTIONHISTORY_USER='root'
+ENV TRANSACTIONHISTORY_PASSWORD=''
+ENV TRANSACTIONHISTORY_URL=''
+
+ENV CONFIG_CERT_PATH="/usr/local/share/ca-certificates/ca-certificates.crt"
+ENV CONFIG_DATABASE='Configuration'
+ENV CONFIG_USER='root'
+ENV CONFIG_URL=''
+ENV CONFIG_PASSWORD=''
+
+ENV PSEUDONYMS_CERT_PATH="/usr/local/share/ca-certificates/ca-certificates.crt"
+ENV PSEUDONYMS_DATABASE='pseudonyms'
+ENV PSEUDONYMS_USER='root'
+ENV PSEUDONYMS_URL=''
+ENV PSEUDONYMS_PASSWORD=''
+
 ENV CACHE_TTL=300
+
 
 # Redis
 ENV REDIS_DB=0

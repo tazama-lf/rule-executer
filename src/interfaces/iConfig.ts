@@ -14,13 +14,21 @@ export interface IConfig {
   cacheTTL: number;
   apmURL: string;
   nodeEnv: string;
-  dbURL: string;
-  dbName: string;
-  dbUser: string;
-  dbPassword: string;
-  dbCertPath: string;
+  configurationURL: string;
+  configurationUser: string;
+  configurationPassword: string;
   configDb: string;
+  configurationCertPath: string;
+  pseudonymsURL: string;
+  pseudonymsUser: string;
+  pseudonymsPassword: string;
   graphDb: string;
+  pseudonymsCertPath: string;
+  transactionHistoryCertPath: string;
+  transactionHistoryName: string;
+  transactionHistoryUser: string;
+  transactionHistoryPassword: string;
+  transactionHistoryURL: string;
   redis: RedisConfig;
   sidecarHost: string;
 }
