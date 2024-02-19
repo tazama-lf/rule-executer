@@ -26,7 +26,7 @@
     "@frmscoe/frms-coe-lib": "^2.2.4",
     "@frmscoe/frms-coe-startup-lib": "^2.1.2",
     "@log4js-node/logstash-http": "^1.1.0",
-    "dotenv": "^16.3.2",
+    "dotenv": "^16.4.4",
     "log4js": "^6.9.1",
     "node-cache": "^5.1.2",
     "rule": "npm:@frmscoe/rule-901@^1.0.6",
