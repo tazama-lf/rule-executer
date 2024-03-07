@@ -31,4 +31,5 @@ export interface IConfig {
   transactionHistoryURL: string;
   redis: RedisConfig;
   sidecarHost: string;
+  maxCPU: number;
 }

@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: Apache-2.0
-import './apm';
-import { config } from './config';
-import NodeCache from 'node-cache';
+import {
+  CreateDatabaseManager,
+  LoggerService,
+  type DatabaseManagerInstance,
+} from '@frmscoe/frms-coe-lib';
 import {
   StartupFactory,
   type IStartupService,
 } from '@frmscoe/frms-coe-startup-lib';
-import {
-  CreateDatabaseManager,
-  type DatabaseManagerInstance,
-  LoggerService,
-} from '@frmscoe/frms-coe-lib';
+import cluster from 'cluster';
+import NodeCache from 'node-cache';
+import os from 'os';
+import './apm';
+import { config } from './config';
 import { execute } from './controllers/execute';
 
 export const loggerService: LoggerService = new LoggerService(
@@ -91,6 +93,8 @@ const runServer = async (): Promise<void> => {
     }
   }
 };
+const numCPUs =
+  os.cpus().length > config.maxCPU ? config.maxCPU + 1 : os.cpus().length + 1;
 
 export const initializeDB = async (): Promise<void> => {
   const manager = await CreateDatabaseManager(databaseManagerConfig);
@@ -118,21 +122,37 @@ process.on('unhandledRejection', (err) => {
   );
 });
 
-if (process.env.NODE_ENV !== 'test') {
-  (async () => {
-    try {
-      await initializeDB();
-      await runServer();
-    } catch (err) {
-      loggerService.error(
-        'Error while starting services',
-        err as Error,
-        logContext,
-        config.functionName,
-      );
-      process.exit(1);
-    }
-  })();
+if (cluster.isPrimary && config.maxCPU !== 1) {
+  loggerService.log(`Primary ${process.pid} is running`);
+
+  // Fork workers.
+  for (let i = 1; i < numCPUs; i++) {
+    cluster.fork();
+  }
+
+  cluster.on('exit', (worker, code, signal) => {
+    loggerService.log(
+      `worker ${Number(worker.process.pid)} died, starting another worker`,
+    );
+    cluster.fork();
+  });
+} else {
+  if (process.env.NODE_ENV !== 'test') {
+    (async () => {
+      try {
+        await initializeDB();
+        await runServer();
+      } catch (err) {
+        loggerService.error(
+          'Error while starting services',
+          err as Error,
+          logContext,
+          config.functionName,
+        );
+        process.exit(1);
+      }
+    })();
+  }
 }
 
 export const cache = new NodeCache();
