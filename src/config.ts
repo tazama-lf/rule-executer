@@ -48,4 +48,5 @@ export const config: IConfig = {
     isCluster: process.env.REDIS_IS_CLUSTER === 'true',
   },
   sidecarHost: process.env.SIDECAR_HOST!,
+  maxCPU: parseInt(process.env.MAX_CPU!, 10) || 1,
 };
