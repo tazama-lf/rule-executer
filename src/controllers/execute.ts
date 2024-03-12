@@ -158,7 +158,10 @@ export const execute = async (reqObj: unknown): Promise<void> => {
         `cfg ver=${ruleRes.cfg}`,
       );
     }
-    delete ruleRes.reason;
+    if (ruleRes.subRuleRef !== '.err') {
+      // happy path, we don't need reason
+      delete ruleRes.reason;
+    }
     await server.handleResponse({
       ...request,
       ruleResult: ruleRes,
