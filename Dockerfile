@@ -44,6 +44,7 @@ ENV FUNCTION_NAME="rule-executer"
 ENV RULE_VERSION="1.0.0"
 ENV RULE_NAME="901"
 ENV NODE_ENV=production
+ENV MAX_CPU=
 
 # Apm
 ENV APM_ACTIVE=true
