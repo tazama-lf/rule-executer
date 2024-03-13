@@ -18,7 +18,7 @@ const calculateDuration = (startTime: bigint): number => {
 export const execute = async (reqObj: unknown): Promise<void> => {
   let request;
   let traceParent = '';
-  const context = 'execute()';
+  let context = `Rule-${config.ruleName} execute()`;
   loggerService.log(
     'Start - Handle execute request',
     context,
@@ -62,6 +62,8 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     reason: 'Unhandled rule result outcome',
     prcgTm: -1,
   };
+
+  context = ruleRes.id;
 
   ruleRes.cfg = (() => {
     for (const messages of request.networkMap.messages) {
@@ -119,6 +121,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
 
   const span = apm.startSpan(`rule.${ruleRes.id}.findResult`);
   try {
+    loggerService.trace('Execute rule logic', context);
     ruleRes = await handleTransaction(
       request,
       determineOutcome,
@@ -132,12 +135,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   } catch (error) {
     span?.end();
     const failMessage = 'Failed to process execution request.';
-    loggerService.error(
-      failMessage,
-      error,
-      'executeController',
-      config.functionName,
-    );
+    loggerService.error(failMessage, error, context, config.functionName);
     ruleRes = {
       ...ruleRes,
       subRuleRef: '.err',
@@ -155,6 +153,10 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   const spanResponse = apm.startSpan(`send.to.typroc.${ruleRes.id}`);
   try {
     request.metaData.traceParent = apm.getCurrentTraceparent();
+    // happy path, we don't need reason
+    if (ruleRes.reason) {
+      loggerService.log(ruleRes.reason, context);
+    }
     if (ruleRes.subRuleRef !== '.err') {
       // happy path, we don't need reason
       delete ruleRes.reason;
