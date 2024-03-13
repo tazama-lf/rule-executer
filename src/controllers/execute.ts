@@ -18,7 +18,7 @@ const calculateDuration = (startTime: bigint): number => {
 export const execute = async (reqObj: unknown): Promise<void> => {
   let request;
   let traceParent = '';
-  const context = `Rule-${config.ruleName} execute()`;
+  let context = `Rule-${config.ruleName} execute()`;
   loggerService.log(
     'Start - Handle execute request',
     context,
@@ -62,6 +62,8 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     reason: 'Unhandled rule result outcome',
     prcgTm: -1,
   };
+
+  context = ruleRes.id;
 
   ruleRes.cfg = (() => {
     for (const messages of request.networkMap.messages) {
@@ -153,10 +155,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     request.metaData.traceParent = apm.getCurrentTraceparent();
     // happy path, we don't need reason
     if (ruleRes.reason) {
-      loggerService.log(
-        `Rule ${config.ruleName} outcome ${ruleRes.reason}`,
-        `cfg ver=${ruleRes.cfg}`,
-      );
+      loggerService.log(ruleRes.reason, context);
     }
     if (ruleRes.subRuleRef !== '.err') {
       // happy path, we don't need reason
