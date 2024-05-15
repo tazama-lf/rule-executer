@@ -1,35 +1,46 @@
-## rule-executer
+# Rule-executer
 Generic rule executer
 
-## testing
-To test a rule in the executer will be a two-step process. Firstly, pack your rule's code to a library on your machine, then install the Rule in the executor. 
-1. From Rule-xxx run:
-`npm run build` to make sure you've got the latest code built to publish
-Followed by 
-`npm pack` to create a library folder `./lib`
-2. From Rule Executer run (`rule-xxx` needs to be the name as specified in the above rule's package.json):
-`npm i rule@file:C:\\source\\github\\actiofrm\\rule-901\\lib`
+See also [Rule Executor](https://github.com/frmscoe/docs/blob/main/Product/typology-processing.md)
 
-Now you can run your rule engine and it will call the `handleTransaction` method from your desired Rule Processor. You'll be able to step into the method call while debugging.
+- [4. Rule Executer](#4-typology-processor)
+  - [Activity Diagram](#code-activity-diagram)
+  - [Usage](#usage)
+    - [Sample Input](#sample-input)
+    - [Sample Output](#sample-output)
+  - [Testing](#testing)
+  - [Troubleshooting](#troubleshooting)
 
-## deployment on Jenkins
-The Jenkins job will have to call a packaged library. So the `rule` in the package.json will have to be installed as follows:
-1. Firstly remove the current `rule` reference:
-`npm uninstall rule`
-2. Then install the expected release version of the `rule-processor` lib:
-`npm i rule@npm:@frmscoe/rule-901@latest`
-
-Furthermore, from Jenkins we'll also need to modify the rule-executer-deploy.yml file, to give the processor the correct name, as well as make sure it points to your library (note the above install / uninstall SED functions also in below script):
-
+## Setting up:
+You need to install a rule which has a function that meets this contract:
+```js
+async function handleTransaction(
+  req: RuleRequest,
+  determineOutcome: (
+    value: number,
+    ruleConfig: RuleConfig,
+    ruleResult: RuleResult,
+  ) => RuleResult,
+  ruleRes: RuleResult,
+  loggerService: LoggerService,
+  ruleConfig: RuleConfig,
+  databaseManager: DatabaseManagerInstance<ManagerConfig>,
+): Promise<RuleResult> {}
 ```
-// Modify below lines to give the correct name for your Rule:
-sh 'sed -i \'s/off-rule-executer/off-rule-901/g\' rule-executer-deploy.yml'
-sh 'sed -i \'s/RULE_NAME="901"/RULE_NAME="901"/g\' Dockerfile'
 
-withNPM(npmrcConfig: 'guid') {
-  // Modify below line to give the correct library for your Rule (eg, change rule-901 to whatever your rule package is called):
-  sh 'sed -i \'s/RUN npm install/COPY .npmrc .npmrc\\nRUN npm uninstall rule\\nRUN npm i rule@npm:@frmscoe\\/rule-901@latest\\nRUN npm install/g\' Dockerfile'
-}
+This Rule-executer application will call this function to determine a rule's outcome (meaning the logic lives in a library). In this process, we allow the rule-executer to be generic.
+
+# Activity Diagram 
+
+```mermaid
+graph TD;
+    Start-->Network_Map;
+    Network_Map-->|Provides Rule Config Version|Find_Rule_Config_Version_from_Map;
+    Find_Rule_Config_Version_from_Map-->|DB Lookup search query|Database;
+    Database-->|Yields Rule Config|Determine_Outcome_of_Rule;
+    Determine_Outcome_of_Rule-->|Outcome determined in rule library|Remove_Rule_Reason_if_Happy_Path;
+    Remove_Rule_Reason_if_Happy_Path-->|Prune message and send to next processor|Send_Rule_Result_to_TP;
+    Send_Rule_Result_to_TP-->End;
 ```
 
 ## publishing your rule as a library
@@ -45,6 +56,7 @@ Ensure the Package.json has the following:
   },
 ```
 
+# Usage
 ## Example Input
 
 ```json
@@ -282,3 +294,39 @@ Ensure the Package.json has the following:
   }
 }
 ```
+
+
+### Testing
+To test a rule in the executer will be a two-step process. Firstly, pack your rule's code to a library on your machine, then install the Rule in the executor. 
+1. From Rule-xxx run:
+`npm run build` to make sure you've got the latest code built to publish
+Followed by 
+`npm pack` to create a tarball with the library artifacts. This will make a file with the extension `.tgz` containing the package version in the name
+2. From Rule Executer run (`rule-xxx` needs to be the name as specified in the above rule's package.json). An example:
+`npm i rule@file:../rule-901/frmscoe-rule-901-1.2.0.tgz`
+
+Now you can run your rule engine and it will call the `handleTransaction` method from your desired Rule Processor. You'll be able to step into the method call while debugging.
+
+## Deployment on Jenkins
+The Jenkins job will have to call a packaged library. So the `rule` in the package.json will have to be installed as follows:
+1. Firstly remove the current `rule` reference:
+`npm uninstall rule`
+2. Then install the expected release version of the `rule-processor` lib:
+`npm i rule@npm:@frmscoe/rule-901@latest`
+
+Furthermore, from Jenkins we'll also need to modify the rule-executer-deploy.yml file, to give the processor the correct name, as well as make sure it points to your library (note the above install / uninstall SED functions also in below script):
+
+```
+// Modify below lines to give the correct name for your Rule:
+sh 'sed -i \'s/off-rule-executer/off-rule-901/g\' rule-executer-deploy.yml'
+sh 'sed -i \'s/RULE_NAME="901"/RULE_NAME="901"/g\' Dockerfile'
+
+withNPM(npmrcConfig: 'guid') {
+  // Modify below line to give the correct library for your Rule (eg, change rule-901 to whatever your rule package is called):
+  sh 'sed -i \'s/RUN npm install/COPY .npmrc .npmrc\\nRUN npm uninstall rule\\nRUN npm i rule@npm:@frmscoe\\/rule-901@latest\\nRUN npm install/g\' Dockerfile'
+}
+```
+
+## Troubleshooting
+- Application will not build when a rule is added as a dependency
+  - Ensure `frms-coe-lib` is on the same version on the `rule-executor` and the `rule-lib`
