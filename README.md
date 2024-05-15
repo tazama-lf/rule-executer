@@ -1,17 +1,9 @@
 # Rule-executer
-Generic rule executer
 
-See also [Rule Executor](https://github.com/frmscoe/docs/blob/main/Product/typology-processing.md)
+## Overview
+Generic rule executer receives a message from the Event-Director and determines a result for a rule in a typology.
 
-- [4. Rule Executer](#4-typology-processor)
-  - [Activity Diagram](#code-activity-diagram)
-  - [Usage](#usage)
-    - [Sample Input](#example-input)
-    - [Sample Output](#example-output)
-  - [Testing](#testing)
-  - [Troubleshooting](#troubleshooting)
-
-## Setting up:
+### Setting up:
 You need to install a rule which has a function that meets this contract:
 ```js
 async function handleTransaction(
@@ -30,35 +22,7 @@ async function handleTransaction(
 
 This Rule-executer application will call this function to determine a rule's outcome (meaning the logic lives in a library). In this process, we allow the rule-executer to be generic.
 
-# Code Activity Diagram 
-
-```mermaid
-graph TD;
-    Start-->Network_Map;
-    Network_Map-->|Provides Rule Config Version|Find_Rule_Config_Version_from_Map;
-    Find_Rule_Config_Version_from_Map-->|DB Lookup search query|Database;
-    Database-->|Yields Rule Config|Determine_Outcome_of_Rule;
-    Determine_Outcome_of_Rule-->|Outcome determined in rule library|Remove_Rule_Reason_if_Happy_Path;
-    Remove_Rule_Reason_if_Happy_Path-->|Prune message and send to next processor|Send_Rule_Result_to_TP;
-    Send_Rule_Result_to_TP-->End;
-```
-
-## publishing your rule as a library
-Make sure you have a index.ts in the root of your rule that is exporting your `handleTransaction` method:
-`export { handleTransaction }`
-
-Ensure the "name" property in your package.json starts with your organization name, eg: `"name": "@frmscoe/rule-901",`
-
-Ensure the Package.json has the following:
-```json
-  "publishConfig": {
-    "@frmscoe:registry": "https://npm.pkg.github.com/"
-  },
-```
-
-# Usage
-## Example Input
-
+## Inputs
 ```json
 {
   "transaction": {
@@ -173,7 +137,21 @@ Ensure the Package.json has the following:
 }
 ```
 
-### Example Output
+
+## Internal Process Flow
+
+```mermaid
+graph TD;
+    Start-->Network_Map;
+    Network_Map-->|Provides Rule Config Version|Find_Rule_Config_Version_from_Map;
+    Find_Rule_Config_Version_from_Map-->|DB Lookup search query|Database;
+    Database-->|Yields Rule Config|Determine_Outcome_of_Rule;
+    Determine_Outcome_of_Rule-->|Outcome determined in rule library|Remove_Rule_Reason_if_Happy_Path;
+    Remove_Rule_Reason_if_Happy_Path-->|Prune message and send to next processor|Send_Rule_Result_to_TP;
+    Send_Rule_Result_to_TP-->End;
+```
+
+## Outputs
 
 ```json
 {
@@ -295,6 +273,58 @@ Ensure the Package.json has the following:
 }
 ```
 
+## Environment Variables
+
+| Name                            | Purpose                             | Example                                    |
+|---------------------------------|-------------------------------------|--------------------------------------------|
+| `FUNCTION_NAME`                 | Name of the function               | `rule-901`                                 |
+| `RULE_NAME`                     | Name of the rule                   | `901`                                      |
+| `RULE_VERSION`                  | Version of the rule                | `1.0.0`                                    |
+| `NODE_ENV`                      | Node Runtime enviroment            | `dev`                                      |
+| `APM_ACTIVE`                    | Flag for APM activation            | `false`                                    |
+| `APM_SECRET_TOKEN`              | APM secret token                   | `some-apm-secret`                          |
+| `APM_URL`                       | URL for APM                        | `http://localhost:9200`                    |
+| `LOGSTASH_HOST`                 | Hostname for Logstash              | `my-release-logstash.frm-meshed`           |
+| `LOGSTASH_PORT`                 | Port for Logstash                  | `http://localhost:9700`                    |
+| `LOGSTASH_LEVEL`                | Log level for Logstash             | `info`                                     |
+| `TRANSACTION_HISTORY_DATABASE`  | Database for transaction history   | `transactionHistory`                       |
+| `TRANSACTION_HISTORY_DATABASE_USER` | User for transaction history database | `root`                              |
+| `TRANSACTION_HISTORY_DATABASE_PASSWORD` | Password for transaction history database | `secret`                        |
+| `TRANSACTION_HISTORY_DATABASE_URL` | URL for transaction history database | `http://localhost:8529`                                  |
+| `CONFIG_DATABASE`               | Configuration database             | `Configuration`                            |
+| `CONFIG_DATABASE_USER`          | User for configuration database    | `root`                                     |
+| `CONFIG_DATABASE_URL`           | URL for configuration database     | `http://localhost:8529`                                       |
+| `CONFIG_DATABASE_PASSWORD`      | Password for configuration database | `secret`                                      |
+| `PSEUDONYMS_DATABASE`           | Database for pseudonyms            | `pseudonyms`                               |
+| `PSEUDONYMS_DATABASE_USER`      | User for pseudonyms database       | `root`                                     |
+| `PSEUDONYMS_DATABASE_URL`       | URL for pseudonyms database        | `http://localhost:8529`                                       |
+| `PSEUDONYMS_DATABASE_PASSWORD`  | Password for pseudonyms database   | `secret`                                       |
+| `CACHE_TTL`                     | Cache time-to-live in milliseconds | `400`                                          |
+| `REDIS_DB`                      | Redis database (default is 0)      | `0`                                        |
+| `REDIS_AUTH`                    | Authentication for Redis           | `secret`                              |
+| `REDIS_SERVERS`                 | List of Redis servers in a json string | `[{"host":"127.0.0.1", "port":6379}, {"host":"127.0.0.1", "port":6380}]` |
+| `REDIS_IS_CLUSTER`              | Flag for Redis clustering          | `false`                                    |
+| `STARTUP_TYPE`                  | NATS feature [`nats` or `jetstream`]| `nats`                                     |
+| `SERVER_URL`                    | [`NATS`] Server URL                | `localhost:4222`                             |
+| `PRODUCER_STREAM`               | Producer stream                    | `RuleResponseRule-xxx`                     |
+| `CONSUMER_STREAM`               | Consumer stream                    | `RuleRequest`                              |
+| `STREAM_SUBJECT`                | Subject for stream                 | `RuleResponse`                             |
+| `ACK_POLICY`                    | Acknowledgment policy              | `Explicit`                                 |
+| `PRODUCER_STORAGE`              | Storage for producer               | `File`                                     |
+| `PRODUCER_RETENTION_POLICY`     | Retention policy for producer      | `Workqueue`                                |
+
+## publishing your rule as a library
+Make sure you have a index.ts in the root of your rule that is exporting your `handleTransaction` method:
+`export { handleTransaction }`
+
+Ensure the "name" property in your package.json starts with your organization name, eg: `"name": "@frmscoe/rule-901",`
+
+Ensure the Package.json has the following:
+```json
+  "publishConfig": {
+    "@frmscoe:registry": "https://npm.pkg.github.com/"
+  },
+```
 
 ### Testing
 To test a rule in the executer will be a two-step process. Firstly, pack your rule's code to a library on your machine, then install the Rule in the executor. 
