@@ -6,8 +6,8 @@ See also [Rule Executor](https://github.com/frmscoe/docs/blob/main/Product/typol
 - [4. Rule Executer](#4-typology-processor)
   - [Activity Diagram](#code-activity-diagram)
   - [Usage](#usage)
-    - [Sample Input](#sample-input)
-    - [Sample Output](#sample-output)
+    - [Sample Input](#example-input)
+    - [Sample Output](#example-output)
   - [Testing](#testing)
   - [Troubleshooting](#troubleshooting)
 
@@ -30,7 +30,7 @@ async function handleTransaction(
 
 This Rule-executer application will call this function to determine a rule's outcome (meaning the logic lives in a library). In this process, we allow the rule-executer to be generic.
 
-# Activity Diagram 
+# Code Activity Diagram 
 
 ```mermaid
 graph TD;
