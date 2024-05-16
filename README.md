@@ -3,315 +3,93 @@
 ## Overview
 Generic rule executer receives a message from the Event-Director and determines a result for a rule in a typology.
 
-### Setting up:
-You need to install a rule which has a function that meets this contract:
-```js
-async function handleTransaction(
-  req: RuleRequest,
-  determineOutcome: (
-    value: number,
-    ruleConfig: RuleConfig,
-    ruleResult: RuleResult,
-  ) => RuleResult,
-  ruleRes: RuleResult,
-  loggerService: LoggerService,
-  ruleConfig: RuleConfig,
-  databaseManager: DatabaseManagerInstance<ManagerConfig>,
-): Promise<RuleResult> {}
-```
+### Services
 
-This Rule-executer application will call this function to determine a rule's outcome (meaning the logic lives in a library). In this process, we allow the rule-executer to be generic.
+- [ArangoDB](https://arangodb.com/): Database Management
+- [NATS](https://nats.io): Message queue
+- [Redis](https://redis.io): Redis
+
+You also need NodeJS to be installed in your system. The current [LTS](https://nodejs.org/en) should be suitable. Please open an issue if the application fails to build on the current LTS version. Unix platforms, you should be able to find `nodejs` in your package manager's repositories.
+
+#### Setting Up
+
+```sh
+git clone https://github.com/frmscoe/rule-executer
+cd rule-executer
+```
+You then need to configure your environment: a [sample](.env.template) configuration file has been provided and you may adapt that to your environment. Copy it to `.env` and modify as needed:
+
+```sh
+cp .env.template .env
+```
+A [registry](https://github.com/frmscoe/docs) of environment variables is provided to provide more context for what each variable is used for.
+
+#### Build and Start
+
+```sh
+npm i
+npm run build
+npm run start
+```
 
 ## Inputs
-```json
+A message received from CRSP:
+```js
 {
-  "transaction": {
-    "TxTp": "pacs.002.001.12",
-    "FIToFIPmtSts": {
-      "GrpHdr": {
-        "MsgId": "33670de7086b4c8688e60478c714aadb",
-        "CreDtTm": "2024-05-13T07:57:20.735Z"
-      },
-      "TxInfAndSts": {
-        "OrgnlInstrId": "5ab4fc7355de4ef8a75b78b00a681ed2",
-        "OrgnlEndToEndId": "41062f8f3b684680840d18e8b84adb81",
-        "TxSts": "ACCC",
-        "ChrgsInf": [
-          {
-            "Amt": {
-              "Amt": 0,
-              "Ccy": "USD"
-            },
-            "Agt": {
-              "FinInstnId": {
-                "ClrSysMmbId": {
-                  "MmbId": "dfsp001"
-                }
-              }
-            }
-          },
-          {
-            "Amt": {
-              "Amt": 0,
-              "Ccy": "USD"
-            },
-            "Agt": {
-              "FinInstnId": {
-                "ClrSysMmbId": {
-                  "MmbId": "dfsp001"
-                }
-              }
-            }
-          },
-          {
-            "Amt": {
-              "Amt": 0,
-              "Ccy": "USD"
-            },
-            "Agt": {
-              "FinInstnId": {
-                "ClrSysMmbId": {
-                  "MmbId": "dfsp002"
-                }
-              }
-            }
-          }
-        ],
-        "AccptncDtTm": "2023-06-02T07:52:31.000Z",
-        "InstgAgt": {
-          "FinInstnId": {
-            "ClrSysMmbId": {
-              "MmbId": "dfsp001"
-            }
-          }
-        },
-        "InstdAgt": {
-          "FinInstnId": {
-            "ClrSysMmbId": {
-              "MmbId": "dfsp002"
-            }
-          }
-        }
-      }
-    }
-  },
-  "networkMap": {
-    "active": true,
-    "cfg": "1.0.0",
-    "messages": [
-      {
-        "id": "004@1.0.0",
-        "cfg": "1.0.0",
-        "txTp": "pacs.002.001.12",
-        "typologies": [
-          {
-            "id": "channel_i_typology_a@1.0.0",
-            "cfg": "1.0.0",
-            "rules": [
-              {
-                "id": "901@1.0.0",
-                "cfg": "1.0.0"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "DataCache": {
-    "dbtrId": "dbtr_5f3e5de29b014400b841e607c4e01c00",
-    "cdtrId": "cdtr_8f2b486b1fef40fa8b63cbc21c064930",
-    "cdtrAcctId": "cdtrAcct_aa6e80b2211240869e99f7b9602c5232",
-    "dbtrAcctId": "dbtrAcct_baeae78f58c74842800c3d3da3c3fdd6",
-    "amt": {
-      "amt": 1000,
-      "ccy": "XTS"
-    },
-    "creDtTm": "2024-05-13T07:52:20.735Z"
-  },
-  "metaData": {
-    "prcgTmDP": 0,
-    "traceParent": "00-postman-33670de7086b4c8688e60478c714aadb-01",
-    "prcgTmCRSP": 0
-  }
-}
+  metaData: { traceParent: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01" }, // https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers
+  transaction: { TxTp: "pacs.002.001.12", "FIToFIPmtSts": { /* Pacs002 */ } },
+  networkMap: { /* Network Map */ },
+  DataCache: { /* cached data relevant to the transaction */ }
+};
 ```
 
-
 ## Internal Process Flow
+### Sequence Diagram
 
 ```mermaid
+sequenceDiagram
+    participant A as TMS API
+    participant B as NATS<br>(event-director)
+    participant C as EVENT<br>DIRECTOR
+    participant D as NATS<br>(sub-rule-*)
+
+    A->>B: Publish message
+    B->>+C: Read message
+    C->>C: handleTransaction()
+    C->>-D: Publish message/s
+```
+
+### Activity Diagram
+```mermaid
 graph TD;
-    Start-->Network_Map;
-    Network_Map-->|Provides Rule Config Version|Find_Rule_Config_Version_from_Map;
-    Find_Rule_Config_Version_from_Map-->|DB Lookup search query|Database;
-    Database-->|Yields Rule Config|Determine_Outcome_of_Rule;
-    Determine_Outcome_of_Rule-->|Outcome determined in rule library|Remove_Rule_Reason_if_Happy_Path;
-    Remove_Rule_Reason_if_Happy_Path-->|Prune message and send to next processor|Send_Rule_Result_to_TP;
-    Send_Rule_Result_to_TP-->End;
+    start[Start] -->|Start| parseRequest;
+    parseRequest -->|Success| startTransaction;
+    parseRequest -->|Failure| logError1[Log Error];
+    startTransaction -->|Success| getRuleConfig;
+    startTransaction -->|Failure| logError2[Log Error];
+    getRuleConfig -->|Success| executeRuleLogic;
+    getRuleConfig -->|Failure| handleErrorResponse[Handle Error Response];
+    executeRuleLogic -->|Success| sendResponse;
+    executeRuleLogic -->|Failure| handleErrorResponse;
+    handleErrorResponse -->|Success| End[End];
+    handleErrorResponse -->|Failure| End;
+    sendResponse -->|Success| End;
+    sendResponse -->|Failure| handleErrorResponse;
 ```
 
 ## Outputs
 
-```json
+The output is the input with an added [RuleResult](https://github.com/frmscoe/frms-coe-lib/blob/dev/src/interfaces/rule/RuleResult.ts):
+
+```js
 {
-  "transaction": {
-    "TxTp": "pacs.002.001.12",
-    "FIToFIPmtSts": {
-      "GrpHdr": {
-        "MsgId": "7f0a384aced04031b264acab25fa68fd",
-        "CreDtTm": "2024-05-13T07:59:09.746Z"
-      },
-      "TxInfAndSts": {
-        "OrgnlInstrId": "5ab4fc7355de4ef8a75b78b00a681ed2",
-        "OrgnlEndToEndId": "372c4f28bbb04e63b069251f9e77ea8d",
-        "TxSts": "ACCC",
-        "ChrgsInf": [
-          {
-            "Amt": {
-              "Amt": 0,
-              "Ccy": "USD"
-            },
-            "Agt": {
-              "FinInstnId": {
-                "ClrSysMmbId": {
-                  "MmbId": "dfsp001"
-                }
-              }
-            }
-          },
-          {
-            "Amt": {
-              "Amt": 0,
-              "Ccy": "USD"
-            },
-            "Agt": {
-              "FinInstnId": {
-                "ClrSysMmbId": {
-                  "MmbId": "dfsp001"
-                }
-              }
-            }
-          },
-          {
-            "Amt": {
-              "Amt": 0,
-              "Ccy": "USD"
-            },
-            "Agt": {
-              "FinInstnId": {
-                "ClrSysMmbId": {
-                  "MmbId": "dfsp002"
-                }
-              }
-            }
-          }
-        ],
-        "AccptncDtTm": "2023-06-02T07:52:31.000Z",
-        "InstgAgt": {
-          "FinInstnId": {
-            "ClrSysMmbId": {
-              "MmbId": "dfsp001"
-            }
-          }
-        },
-        "InstdAgt": {
-          "FinInstnId": {
-            "ClrSysMmbId": {
-              "MmbId": "dfsp002"
-            }
-          }
-        }
-      }
-    }
-  },
-  "networkMap": {
-    "active": true,
-    "cfg": "1.0.0",
-    "messages": [
-      {
-        "id": "004@1.0.0",
-        "cfg": "1.0.0",
-        "txTp": "pacs.002.001.12",
-        "typologies": [
-          {
-            "id": "channel_i_typology_a@1.0.0",
-            "cfg": "1.0.0",
-            "rules": [
-              {
-                "id": "901@1.0.0",
-                "cfg": "1.0.0"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "DataCache": {
-    "dbtrId": "dbtr_f213ed37b8864bedbf9891ddd0990d13",
-    "cdtrId": "cdtr_a252ddf5582a475ebea30ddd6c91e097",
-    "cdtrAcctId": "cdtrAcct_3cfa9be89336470e81f893db2df1f030",
-    "dbtrAcctId": "dbtrAcct_1e3fb1e8e1634225888dcb40b5118d31",
-    "amt": {
-      "amt": 1000,
-      "ccy": "XTS"
-    },
-    "creDtTm": "2024-05-13T07:54:09.746Z"
-  },
-  "metaData": {
-    "prcgTmDP": 0,
-    "traceParent": null,
-    "prcgTmCRSP": 0
-  },
-  "ruleResult": {
-    "id": "901@1.0.0",
-    "cfg": "1.0.0",
-    "subRuleRef": ".01",
-    "prcgTm": 14403741
-  }
-}
+  metaData: { traceParent: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01" }, // https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers
+  transaction: { TxTp: "pacs.002.001.12", "FIToFIPmtSts": { /* Pacs002 */ } },
+  networkMap: { /* Network Map */ },
+  DataCache: { /* cached data relevant to the transaction */ },
+  ruleResult: { /* rule result */ }
+};
 ```
-
-## Environment Variables
-
-| Name                            | Purpose                             | Example                                    |
-|---------------------------------|-------------------------------------|--------------------------------------------|
-| `FUNCTION_NAME`                 | Name of the function               | `rule-901`                                 |
-| `RULE_NAME`                     | Name of the rule                   | `901`                                      |
-| `RULE_VERSION`                  | Version of the rule                | `1.0.0`                                    |
-| `NODE_ENV`                      | Node Runtime enviroment            | `dev`                                      |
-| `APM_ACTIVE`                    | Flag for APM activation            | `false`                                    |
-| `APM_SECRET_TOKEN`              | APM secret token                   | `some-apm-secret`                          |
-| `APM_URL`                       | URL for APM                        | `http://localhost:9200`                    |
-| `LOGSTASH_HOST`                 | Hostname for Logstash              | `my-release-logstash.frm-meshed`           |
-| `LOGSTASH_PORT`                 | Port for Logstash                  | `http://localhost:9700`                    |
-| `LOGSTASH_LEVEL`                | Log level for Logstash             | `info`                                     |
-| `TRANSACTION_HISTORY_DATABASE`  | Database for transaction history   | `transactionHistory`                       |
-| `TRANSACTION_HISTORY_DATABASE_USER` | User for transaction history database | `root`                              |
-| `TRANSACTION_HISTORY_DATABASE_PASSWORD` | Password for transaction history database | `secret`                        |
-| `TRANSACTION_HISTORY_DATABASE_URL` | URL for transaction history database | `http://localhost:8529`                                  |
-| `CONFIG_DATABASE`               | Configuration database             | `Configuration`                            |
-| `CONFIG_DATABASE_USER`          | User for configuration database    | `root`                                     |
-| `CONFIG_DATABASE_URL`           | URL for configuration database     | `http://localhost:8529`                                       |
-| `CONFIG_DATABASE_PASSWORD`      | Password for configuration database | `secret`                                      |
-| `PSEUDONYMS_DATABASE`           | Database for pseudonyms            | `pseudonyms`                               |
-| `PSEUDONYMS_DATABASE_USER`      | User for pseudonyms database       | `root`                                     |
-| `PSEUDONYMS_DATABASE_URL`       | URL for pseudonyms database        | `http://localhost:8529`                                       |
-| `PSEUDONYMS_DATABASE_PASSWORD`  | Password for pseudonyms database   | `secret`                                       |
-| `CACHE_TTL`                     | Cache time-to-live in milliseconds | `400`                                          |
-| `REDIS_DB`                      | Redis database (default is 0)      | `0`                                        |
-| `REDIS_AUTH`                    | Authentication for Redis           | `secret`                              |
-| `REDIS_SERVERS`                 | List of Redis servers in a json string | `[{"host":"127.0.0.1", "port":6379}, {"host":"127.0.0.1", "port":6380}]` |
-| `REDIS_IS_CLUSTER`              | Flag for Redis clustering          | `false`                                    |
-| `STARTUP_TYPE`                  | NATS feature [`nats` or `jetstream`]| `nats`                                     |
-| `SERVER_URL`                    | [`NATS`] Server URL                | `localhost:4222`                             |
-| `PRODUCER_STREAM`               | Producer stream                    | `RuleResponseRule-xxx`                     |
-| `CONSUMER_STREAM`               | Consumer stream                    | `RuleRequest`                              |
-| `STREAM_SUBJECT`                | Subject for stream                 | `RuleResponse`                             |
-| `ACK_POLICY`                    | Acknowledgment policy              | `Explicit`                                 |
-| `PRODUCER_STORAGE`              | Storage for producer               | `File`                                     |
-| `PRODUCER_RETENTION_POLICY`     | Retention policy for producer      | `Workqueue`                                |
 
 ## publishing your rule as a library
 Make sure you have a index.ts in the root of your rule that is exporting your `handleTransaction` method:
