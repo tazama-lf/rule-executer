@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
 import {
+  type NetworkMap,
   type RuleConfig,
   type RuleResult,
 } from '@frmscoe/frms-coe-lib/lib/interfaces';
@@ -32,7 +33,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     const message = reqObj as any;
     request = {
       transaction: message.transaction,
-      networkMap: message.networkMap,
+      networkMap: message.networkMap as NetworkMap,
       DataCache: message.DataCache,
       metaData: message?.metaData,
     };
@@ -57,7 +58,6 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   let ruleRes: RuleResult = {
     id: `${config.ruleName}@${config.ruleVersion}`,
     cfg: '',
-    result: false,
     subRuleRef: '.err',
     reason: 'Unhandled rule result outcome',
     prcgTm: -1,
@@ -67,12 +67,10 @@ export const execute = async (reqObj: unknown): Promise<void> => {
 
   ruleRes.cfg = (() => {
     for (const messages of request.networkMap.messages) {
-      for (const channels of messages.channels) {
-        for (const typologies of channels.typologies) {
-          for (const rule of typologies.rules) {
-            if (rule.id === ruleRes.id) {
-              return rule.cfg;
-            }
+      for (const typologies of messages.typologies) {
+        for (const rule of typologies.rules) {
+          if (rule.id === ruleRes.id) {
+            return rule.cfg;
           }
         }
       }
@@ -161,6 +159,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       // happy path, we don't need reason
       delete ruleRes.reason;
     }
+
     await server.handleResponse({
       ...request,
       ruleResult: ruleRes,
@@ -172,7 +171,6 @@ export const execute = async (reqObj: unknown): Promise<void> => {
       ...ruleRes,
       subRuleRef: '.err',
       reason: (error as Error).message,
-      result: false,
     };
   } finally {
     spanResponse?.end();

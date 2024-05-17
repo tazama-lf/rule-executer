@@ -27,7 +27,6 @@ const determineOutcome = (
         (!band.upperLimit || value < band.upperLimit)
       ) {
         ruleResult.subRuleRef = band.subRuleRef;
-        ruleResult.result = band.outcome;
         ruleResult.reason = band.reason;
         break;
       }
