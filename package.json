@@ -33,7 +33,7 @@
     "tslib": "^2.6.0"
   },
   "devDependencies": {
-    "@types/babel__traverse": "^7.20.1",
+    "@types/babel__traverse": "^7.20.6",
     "@types/jest": "^29.5.1",
     "@types/node": "^20.12.12",
     "@typescript-eslint/eslint-plugin": "^6.19.1",
