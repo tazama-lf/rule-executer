@@ -63,7 +63,7 @@ const runServer = async (): Promise<void> => {
     let isConnected = false;
     for (let retryCount = 0; retryCount < 10; retryCount++) {
       loggerService.log(
-        `Connecting to nats server...`,
+        'Connecting to nats server...',
         logContext,
         config.functionName,
       );
@@ -82,7 +82,7 @@ const runServer = async (): Promise<void> => {
         );
         await new Promise((resolve) => setTimeout(resolve, 5000));
       } else {
-        loggerService.log(`Connected to nats`, logContext, config.functionName);
+        loggerService.log('Connected to nats', logContext, config.functionName);
         isConnected = true;
         break;
       }

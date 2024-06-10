@@ -31,10 +31,11 @@ const determineOutcome = (
         break;
       }
     }
-  } else
+  } else {
     throw new Error(
       'Value provided undefined, so cannot determine rule outcome',
     );
+  }
   return ruleResult;
 };
 
