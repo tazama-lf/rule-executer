@@ -30,7 +30,7 @@
     "log4js": "^6.9.1",
     "node-cache": "^5.1.2",
     "rule": "npm:@frmscoe/rule-901@1.2.0-alpha.0",
-    "tslib": "^2.6.0"
+    "tslib": "^2.6.3"
   },
   "devDependencies": {
     "@types/babel__traverse": "^7.20.6",
