@@ -24,8 +24,8 @@
   "keywords": [],
   "license": "Apache-2.0",
   "dependencies": {
-    "@frmscoe/frms-coe-lib": "^4.0.0-rc.5",
-    "@frmscoe/frms-coe-startup-lib": "^2.2.0-alpha.1",
+    "@frmscoe/frms-coe-lib": "^4.0.0-rc.10",
+    "@frmscoe/frms-coe-startup-lib": "^2.2.0-rc.3",
     "dotenv": "^16.4.5",
     "node-cache": "^5.1.2",
     "rule": "npm:@frmscoe/rule-901@1.2.0-alpha.0",
