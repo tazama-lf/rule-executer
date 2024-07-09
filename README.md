@@ -24,7 +24,7 @@ You then need to configure your environment: a [sample](.env.template) configura
 ```sh
 cp .env.template .env
 ```
-A [registry](https://github.com/frmscoe/docs) of environment variables is provided to provide more context for what each variable is used for.
+A [registry](https://github.com/frmscoe/docs/blob/dev/Technical/processor-startup-config-registry.md) of environment variables is provided to provide more context for what each variable is used for.
 
 #### Build and Start
 
