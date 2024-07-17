@@ -25,7 +25,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@frmscoe/frms-coe-lib": "next",
-    "@frmscoe/frms-coe-startup-lib": "^2.2.0-rc.3",
+    "@frmscoe/frms-coe-startup-lib": "next",
     "dotenv": "^16.4.5",
     "node-cache": "^5.1.2",
     "rule": "npm:@frmscoe/rule-901@next",
