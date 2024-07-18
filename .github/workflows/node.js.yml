@@ -23,7 +23,7 @@ jobs:
     name: run build
     strategy:
       matrix:
-        node-version: [16, 20]
+        node-version: [20]
     steps:
       - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
