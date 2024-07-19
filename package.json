@@ -24,11 +24,11 @@
   "keywords": [],
   "license": "Apache-2.0",
   "dependencies": {
-    "@frmscoe/frms-coe-lib": "4.0.0-rc.12",
-    "@frmscoe/frms-coe-startup-lib": "2.2.0-rc.4",
+    "@frmscoe/frms-coe-lib": "4.0.0",
+    "@frmscoe/frms-coe-startup-lib": "2.2.0",
     "dotenv": "^16.4.5",
     "node-cache": "^5.1.2",
-    "rule": "npm:@frmscoe/rule-901@2.0.0-rc.1",
+    "rule": "npm:@frmscoe/rule-901@2.0.0",
     "tslib": "^2.6.3"
   },
   "devDependencies": {
