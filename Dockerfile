@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 ARG BUILD_IMAGE=node:20-bullseye
 ARG RUN_IMAGE=gcr.io/distroless/nodejs20-debian11:nonroot
 
@@ -64,7 +66,7 @@ ENV TRANSACTION_HISTORY_DATABASE_PASSWORD=
 ENV TRANSACTION_HISTORY_DATABASE_URL=
 
 ENV CONFIG_DATABASE_CERT_PATH='/usr/local/share/ca-certificates/ca-certificates.crt'
-ENV CONFIG_DATABASE='Configuration'
+ENV CONFIG_DATABASE='configuration'
 ENV CONFIG_DATABASE_USER='root'
 ENV CONFIG_DATABASE_URL=
 ENV CONFIG_DATABASE_PASSWORD=

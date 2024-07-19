@@ -19,7 +19,7 @@ export const config: IConfig = {
   apmLogging: process.env.APM_ACTIVE === 'true',
   apmSecretToken: process.env.APM_SECRET_TOKEN!,
   ruleVersion: process.env.RULE_VERSION!,
-  cacheTTL: parseInt(process.env.CACHE_TTL || '3000', 10),
+  cacheTTL: parseInt(process.env.CACHE_TTL ?? '3000', 10),
   apmURL: process.env.APM_URL!,
   nodeEnv: process.env.NODE_ENV!,
   transactionHistoryCertPath:
