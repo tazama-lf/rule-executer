@@ -1,18 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-import { type RedisConfig } from '@frmscoe/frms-coe-lib/lib/interfaces';
+import { type RedisConfig } from '@tazama-lf/frms-coe-lib/lib/interfaces';
+
 export interface IConfig {
-  logger: {
-    logstashHost: string;
-    logstashPort: number;
-    logstashLevel: string;
-  };
+  logstashLevel: string;
   functionName: string;
   ruleName: string;
-  apmLogging: boolean;
-  apmSecretToken: string;
   ruleVersion: string;
   cacheTTL: number;
-  apmURL: string;
   nodeEnv: string;
   configurationURL: string;
   configurationUser: string;
@@ -30,6 +24,6 @@ export interface IConfig {
   transactionHistoryPassword: string;
   transactionHistoryURL: string;
   redis: RedisConfig;
-  sidecarHost: string;
+  sidecarHost?: string;
   maxCPU: number;
 }

@@ -3,11 +3,11 @@ import {
   CreateDatabaseManager,
   LoggerService,
   type DatabaseManagerInstance,
-} from '@frmscoe/frms-coe-lib';
+} from '@tazama-lf/frms-coe-lib';
 import {
   StartupFactory,
   type IStartupService,
-} from '@frmscoe/frms-coe-startup-lib';
+} from '@tazama-lf/frms-coe-startup-lib';
 import cluster from 'cluster';
 import NodeCache from 'node-cache';
 import os from 'os';
