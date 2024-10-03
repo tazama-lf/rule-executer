@@ -21,37 +21,10 @@ export const loggerService: LoggerService = new LoggerService(
 export let server: IStartupService;
 
 const databaseManagerConfig = {
-  redisConfig: {
-    db: config.redis.db,
-    servers: config.redis.servers,
-    password: config.redis.password,
-    isCluster: config.redis.isCluster,
-  },
-  transactionHistory: {
-    certPath: config.transactionHistoryCertPath,
-    databaseName: config.transactionHistoryName,
-    user: config.transactionHistoryUser,
-    password: config.transactionHistoryPassword,
-    url: config.transactionHistoryURL,
-  },
-  configuration: {
-    url: config.configurationURL,
-    user: config.configurationUser,
-    password: config.configurationPassword,
-    databaseName: config.configDb,
-    certPath: config.configurationCertPath,
-    localCacheEnabled: !!config.cacheTTL,
-    localCacheTTL: config.cacheTTL,
-  },
-  pseudonyms: {
-    url: config.pseudonymsURL,
-    user: config.pseudonymsUser,
-    password: config.pseudonymsPassword,
-    databaseName: config.graphDb,
-    certPath: config.pseudonymsCertPath,
-    localCacheEnabled: !!config.cacheTTL,
-    localCacheTTL: config.cacheTTL,
-  },
+  redisConfig: config.redis,
+  transactionHistory: config.transactionHistoryDBConfig,
+  configuration: config.configDBConfig,
+  pseudonyms: config.pseudonymsDBConfig,
 };
 
 let databaseManager: DatabaseManagerInstance<typeof databaseManagerConfig>;

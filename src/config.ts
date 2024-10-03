@@ -2,13 +2,13 @@
 import path from 'path';
 import { config as dotenv } from 'dotenv';
 import { type IConfig } from './interfaces/iConfig';
-import { validateProcessorConfig } from '@tazama-lf/frms-coe-lib/lib/helpers/env/processor.config';
-import { validateRedisConfig } from '@tazama-lf/frms-coe-lib/lib/helpers/env/redis.config';
 import {
-  Database,
   validateDatabaseConfig,
-} from '@tazama-lf/frms-coe-lib/lib/helpers/env/database.config';
-import { validateEnvVar } from '@tazama-lf/frms-coe-lib/lib/helpers/env';
+  validateProcessorConfig,
+  validateRedisConfig,
+  validateEnvVar,
+} from '@tazama-lf/frms-coe-lib/lib/helpers/env';
+import { Database } from '@tazama-lf/frms-coe-lib/lib/helpers/env/database.config';
 
 const generalConfig = validateProcessorConfig();
 const authEnabled = generalConfig.nodeEnv === 'production';
@@ -21,7 +21,7 @@ const pseudonymsDBConfig = validateDatabaseConfig(
   authEnabled,
   Database.PSEUDONYMS,
 );
-const transactionHistoryConfig = validateDatabaseConfig(
+const transactionHistoryDBConfig = validateDatabaseConfig(
   authEnabled,
   Database.TRANSACTION_HISTORY,
 );
@@ -36,27 +36,15 @@ const ruleVersion = validateEnvVar<string>('RULE_VERSION', 'string');
 
 export const config: IConfig = {
   ruleName,
-  logstashLevel: 'info',
+  logstashLevel: validateEnvVar('LOGSTASH_LEVEL', 'string'),
   functionName: generalConfig.functionName,
   ruleVersion,
   cacheTTL: validateEnvVar('CACHETTL', 'number'),
   nodeEnv: generalConfig.nodeEnv,
-  transactionHistoryCertPath: transactionHistoryConfig.certPath,
-  transactionHistoryName: transactionHistoryConfig.name,
-  transactionHistoryPassword: transactionHistoryConfig.password ?? '',
-  transactionHistoryURL: transactionHistoryConfig.url,
-  transactionHistoryUser: transactionHistoryConfig.user,
-  configDb: configDBConfig.name,
-  configurationCertPath: configDBConfig.certPath,
-  configurationURL: configDBConfig.url,
-  configurationPassword: configDBConfig.password ?? '',
-  configurationUser: configDBConfig.user,
-  graphDb: pseudonymsDBConfig.name,
-  pseudonymsURL: pseudonymsDBConfig.url,
-  pseudonymsUser: pseudonymsDBConfig.user,
-  pseudonymsPassword: pseudonymsDBConfig.password ?? '',
-  pseudonymsCertPath: pseudonymsDBConfig.certPath,
+  transactionHistoryDBConfig,
+  configDBConfig,
+  pseudonymsDBConfig,
   redis: redisConfig,
-  sidecarHost: process.env.SIDECAR_HOST,
+  sidecarHost: validateEnvVar('SIDECAR_HOST', 'string', true),
   maxCPU: generalConfig.maxCPU,
 };
