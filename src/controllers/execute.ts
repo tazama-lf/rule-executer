@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
-import { unwrap } from '@frmscoe/frms-coe-lib/lib/helpers/unwrap';
+import { unwrap } from '@tazama-lf/frms-coe-lib/lib/helpers/unwrap';
 import {
   type NetworkMap,
   type RuleConfig,
   type RuleResult,
-} from '@frmscoe/frms-coe-lib/lib/interfaces';
+} from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import apm from '../apm';
 import { handleTransaction } from 'rule/lib';
 import { databaseManager, loggerService, server } from '..';

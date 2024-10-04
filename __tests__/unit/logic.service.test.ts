@@ -3,13 +3,13 @@ import {
   DatabaseManagerInstance,
   LoggerService,
   ManagerConfig,
-} from '@frmscoe/frms-coe-lib';
+} from '@tazama-lf/frms-coe-lib';
 import {
   NetworkMap,
   RuleConfig,
   RuleRequest,
   RuleResult,
-} from '@frmscoe/frms-coe-lib/lib/interfaces';
+} from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import ioredis from 'ioredis-mock';
 import { handleTransaction } from 'rule/lib';
 import { initializeDB, runServer, server } from '../../src';
@@ -19,7 +19,53 @@ import {
   Pacs002Sample,
   NetworkMapSample,
   DataCacheSample,
-} from '@frmscoe/frms-coe-lib/lib/tests/data';
+} from '@tazama-lf/frms-coe-lib/lib/tests/data';
+
+jest.mock('@tazama-lf/frms-coe-lib/lib/helpers/env', () => ({
+  validateAPMConfig: jest.fn().mockReturnValue({
+    apmServiceName: '',
+  }),
+  validateLogConfig: jest.fn().mockReturnValue({}),
+  validateProcessorConfig: jest.fn().mockReturnValue({
+    functionName: 'test-rule-exec',
+    nodeEnv: 'test',
+    maxCPU: 0,
+  }),
+  validateEnvVar: jest.fn().mockReturnValue(''),
+  validateRedisConfig: jest.fn().mockReturnValue({
+    db: 0,
+    servers: [
+      {
+        host: 'redis://localhost',
+        port: 6379,
+      },
+    ],
+    password: '',
+    isCluster: false,
+  }),
+  validateDatabaseConfig: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('@tazama-lf/frms-coe-lib/lib/helpers/env/database.config', () => ({
+  Database: {
+    CONFIGURATION: 'MOCK_DB',
+    TRANSACTION_HISTORY: 'MOCK_DB',
+    PSEUDONYMS: 'MOCK_DB',
+  },
+}));
+
+jest.mock(
+  '@tazama-lf/frms-coe-startup-lib/lib/interfaces/iStartupConfig',
+  () => ({
+    startupConfig: {
+      startupType: 'nats',
+      consumerStreamName: 'consumer',
+      serverUrl: 'server',
+      producerStreamName: 'producer',
+      functionName: 'producer',
+    },
+  }),
+);
 
 const getMockRequest = () => {
   const quote: RuleRequest = {
