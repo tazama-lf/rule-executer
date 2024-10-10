@@ -7,24 +7,23 @@ import {
   validateProcessorConfig,
   validateRedisConfig,
   validateEnvVar,
+  validateLocalCacheConfig,
 } from '@tazama-lf/frms-coe-lib/lib/helpers/env';
 import { Database } from '@tazama-lf/frms-coe-lib/lib/helpers/env/database.config';
 
 const generalConfig = validateProcessorConfig();
 const authEnabled = generalConfig.nodeEnv === 'production';
 const redisConfig = validateRedisConfig(authEnabled);
-const configDBConfig = validateDatabaseConfig(
+const configuration = validateDatabaseConfig(
   authEnabled,
   Database.CONFIGURATION,
 );
-const pseudonymsDBConfig = validateDatabaseConfig(
-  authEnabled,
-  Database.PSEUDONYMS,
-);
-const transactionHistoryDBConfig = validateDatabaseConfig(
+const pseudonyms = validateDatabaseConfig(authEnabled, Database.PSEUDONYMS);
+const transactionHistory = validateDatabaseConfig(
   authEnabled,
   Database.TRANSACTION_HISTORY,
 );
+const localCacheConfig = validateLocalCacheConfig();
 
 // Load .env file into process.env if it exists. This is convenient for running locally.
 dotenv({
@@ -36,15 +35,17 @@ const ruleVersion = validateEnvVar<string>('RULE_VERSION', 'string');
 
 export const config: IConfig = {
   ruleName,
-  logstashLevel: validateEnvVar('LOGSTASH_LEVEL', 'string'),
-  functionName: generalConfig.functionName,
   ruleVersion,
-  cacheTTL: validateEnvVar('CACHETTL', 'number'),
+  functionName: generalConfig.functionName,
   nodeEnv: generalConfig.nodeEnv,
-  transactionHistoryDBConfig,
-  configDBConfig,
-  pseudonymsDBConfig,
-  redis: redisConfig,
-  sidecarHost: validateEnvVar('SIDECAR_HOST', 'string', true),
   maxCPU: generalConfig.maxCPU,
+  sidecarHost: validateEnvVar('SIDECAR_HOST', 'string', true),
+  logstashLevel: validateEnvVar('LOGSTASH_LEVEL', 'string'),
+  db: {
+    transactionHistory,
+    configuration,
+    pseudonyms,
+    redisConfig,
+    localCacheConfig,
+  },
 };

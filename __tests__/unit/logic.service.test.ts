@@ -32,6 +32,7 @@ jest.mock('@tazama-lf/frms-coe-lib/lib/helpers/env', () => ({
     maxCPU: 0,
   }),
   validateEnvVar: jest.fn().mockReturnValue(''),
+  validateLocalCacheConfig: jest.fn().mockReturnValue({}),
   validateRedisConfig: jest.fn().mockReturnValue({
     db: 0,
     servers: [
