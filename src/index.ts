@@ -20,14 +20,7 @@ export const loggerService: LoggerService = new LoggerService(
 );
 export let server: IStartupService;
 
-const databaseManagerConfig = {
-  redisConfig: config.redis,
-  transactionHistory: config.transactionHistoryDBConfig,
-  configuration: config.configDBConfig,
-  pseudonyms: config.pseudonymsDBConfig,
-};
-
-let databaseManager: DatabaseManagerInstance<typeof databaseManagerConfig>;
+let databaseManager: DatabaseManagerInstance<typeof config.db>;
 const logContext = 'startup';
 
 const runServer = async (): Promise<void> => {
@@ -70,7 +63,7 @@ const numCPUs =
   os.cpus().length > config.maxCPU ? config.maxCPU + 1 : os.cpus().length + 1;
 
 export const initializeDB = async (): Promise<void> => {
-  const manager = await CreateDatabaseManager(databaseManagerConfig);
+  const manager = await CreateDatabaseManager(config.db);
   databaseManager = manager;
   loggerService.log(
     JSON.stringify(databaseManager.isReadyCheck()),
