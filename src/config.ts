@@ -5,7 +5,6 @@ import { type IConfig } from './interfaces/iConfig';
 import {
   validateDatabaseConfig,
   validateProcessorConfig,
-  validateRedisConfig,
   validateEnvVar,
   validateLocalCacheConfig,
 } from '@tazama-lf/frms-coe-lib/lib/helpers/env';
@@ -13,7 +12,6 @@ import { Database } from '@tazama-lf/frms-coe-lib/lib/helpers/env/database.confi
 
 const generalConfig = validateProcessorConfig();
 const authEnabled = generalConfig.nodeEnv === 'production';
-const redisConfig = validateRedisConfig(authEnabled);
 const configuration = validateDatabaseConfig(
   authEnabled,
   Database.CONFIGURATION,
@@ -45,7 +43,6 @@ export const config: IConfig = {
     transactionHistory,
     configuration,
     pseudonyms,
-    redisConfig,
     localCacheConfig,
   },
 };
