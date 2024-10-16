@@ -15,7 +15,6 @@ import {
   type IStartupService,
 } from '@tazama-lf/frms-coe-startup-lib';
 import cluster from 'cluster';
-import NodeCache from 'node-cache';
 import os from 'os';
 import './apm';
 import { additionalEnvironmentVariables, type Configuration } from './config';
@@ -145,5 +144,4 @@ if (cluster.isPrimary && configuration.maxCPU !== 1) {
   }
 }
 
-export const cache = new NodeCache();
 export { configuration, databaseManager, runServer };
