@@ -1,48 +1,32 @@
 // SPDX-License-Identifier: Apache-2.0
-import path from 'path';
-import { config as dotenv } from 'dotenv';
-import { type IConfig } from './interfaces/iConfig';
+// config settings, env variables
+
+import { type ManagerConfig } from '@tazama-lf/frms-coe-lib';
 import {
-  validateDatabaseConfig,
-  validateProcessorConfig,
-  validateEnvVar,
-  validateLocalCacheConfig,
-} from '@tazama-lf/frms-coe-lib/lib/helpers/env';
-import { Database } from '@tazama-lf/frms-coe-lib/lib/helpers/env/database.config';
+  type AdditionalConfig,
+  type ProcessorConfig,
+} from '@tazama-lf/frms-coe-lib/lib/config/processor.config';
 
-const generalConfig = validateProcessorConfig();
-const authEnabled = generalConfig.nodeEnv === 'production';
-const configuration = validateDatabaseConfig(
-  authEnabled,
-  Database.CONFIGURATION,
-);
-const pseudonyms = validateDatabaseConfig(authEnabled, Database.PSEUDONYMS);
-const transactionHistory = validateDatabaseConfig(
-  authEnabled,
-  Database.TRANSACTION_HISTORY,
-);
-const localCacheConfig = validateLocalCacheConfig();
-
-// Load .env file into process.env if it exists. This is convenient for running locally.
-dotenv({
-  path: path.resolve(__dirname, '../.env'),
-});
-
-const ruleName = validateEnvVar<string>('RULE_NAME', 'string');
-const ruleVersion = validateEnvVar<string>('RULE_VERSION', 'string');
-
-export const config: IConfig = {
-  ruleName,
-  ruleVersion,
-  functionName: generalConfig.functionName,
-  nodeEnv: generalConfig.nodeEnv,
-  maxCPU: generalConfig.maxCPU,
-  sidecarHost: validateEnvVar('SIDECAR_HOST', 'string', true),
-  logstashLevel: validateEnvVar('LOGSTASH_LEVEL', 'string'),
-  db: {
-    transactionHistory,
-    configuration,
-    pseudonyms,
-    localCacheConfig,
+export const additionalEnvironmentVariables: AdditionalConfig[] = [
+  {
+    name: 'RULE_NAME',
+    type: 'string',
   },
-};
+  {
+    name: 'RULE_VERSION',
+    type: 'string',
+  },
+];
+
+export interface ExtendedConfig {
+  RULE_NAME: string;
+  RULE_VERSION: string;
+}
+
+type Databases = Required<
+  Pick<
+    ManagerConfig,
+    'transactionHistory' | 'pseudonyms' | 'configuration' | 'localCacheConfig'
+  >
+>;
+export type Configuration = ProcessorConfig & Databases & ExtendedConfig;

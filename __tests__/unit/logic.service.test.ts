@@ -13,7 +13,7 @@ import {
 import ioredis from 'ioredis-mock';
 import { handleTransaction } from 'rule/lib';
 import { initializeDB, runServer, server } from '../../src';
-import { config } from '../../src/config';
+import { configuration } from '../../src';
 import { execute } from '../../src/controllers/execute';
 import {
   Pacs002Sample,
@@ -21,38 +21,33 @@ import {
   DataCacheSample,
 } from '@tazama-lf/frms-coe-lib/lib/tests/data';
 
-jest.mock('@tazama-lf/frms-coe-lib/lib/helpers/env', () => ({
-  validateAPMConfig: jest.fn().mockReturnValue({
-    apmServiceName: '',
-  }),
-  validateLogConfig: jest.fn().mockReturnValue({}),
+jest.mock('@tazama-lf/frms-coe-lib/lib/config/processor.config', () => ({
   validateProcessorConfig: jest.fn().mockReturnValue({
-    functionName: 'test-rule-exec',
+    functionName: 'test-ed',
     nodeEnv: 'test',
-    maxCPU: 0,
   }),
-  validateEnvVar: jest.fn().mockReturnValue(''),
-  validateLocalCacheConfig: jest.fn().mockReturnValue({}),
-  validateRedisConfig: jest.fn().mockReturnValue({
-    db: 0,
-    servers: [
-      {
-        host: 'redis://localhost',
-        port: 6379,
-      },
-    ],
-    password: '',
-    isCluster: false,
-  }),
-  validateDatabaseConfig: jest.fn().mockReturnValue({}),
 }));
 
-jest.mock('@tazama-lf/frms-coe-lib/lib/helpers/env/database.config', () => ({
-  Database: {
-    CONFIGURATION: 'MOCK_DB',
-    TRANSACTION_HISTORY: 'MOCK_DB',
-    PSEUDONYMS: 'MOCK_DB',
-  },
+jest.mock('@tazama-lf/frms-coe-lib/lib/services/dbManager', () => ({
+  CreateStorageManager: jest.fn().mockReturnValue({
+    db: {
+      set: jest.fn(),
+      quit: jest.fn(),
+      isReadyCheck: jest.fn().mockReturnValue({ nodeEnv: 'test' }),
+    },
+    config: {
+      RULE_NAME: 'test-101',
+      RULE_VERSION: '1.0.1',
+    },
+  }),
+}));
+
+jest.mock('@tazama-lf/frms-coe-lib/lib/services/apm', () => ({
+  Apm: jest.fn().mockReturnValue({
+    startSpan: jest.fn(),
+    getCurrentTraceparent: jest.fn().mockReturnValue(''),
+    startTransaction: jest.fn(),
+  }),
 }));
 
 jest.mock(
@@ -77,7 +72,7 @@ const getMockRequest = () => {
   return quote;
 };
 
-const loggerService: LoggerService = new LoggerService();
+const loggerService: LoggerService = new LoggerService(configuration);
 
 beforeAll(async () => {
   await initializeDB();
@@ -88,7 +83,7 @@ afterAll(() => {});
 
 describe('Logic Service', () => {
   beforeEach(() => {
-    config.ruleVersion = '1.0.0';
+    configuration.RULE_VERSION = '1.0.0';
     jest.mock('ioredis', () => ioredis);
     jest
       .fn(handleTransaction)
