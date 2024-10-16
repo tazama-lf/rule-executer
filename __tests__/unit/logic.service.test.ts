@@ -64,6 +64,12 @@ jest.mock(
   }),
 );
 
+jest.mock('cluster', () => ({
+  isMaster: true,
+  fork: jest.fn(),
+  on: jest.fn(),
+}));
+
 const getMockRequest = () => {
   const quote: RuleRequest = {
     transaction: Object.assign({}, Pacs002Sample),
@@ -80,14 +86,7 @@ beforeAll(async () => {
   runServer();
 });
 
-afterAll(() => {
-  if (cluster.isPrimary) {
-    // Kill all workers
-
-    Object.values(cluster.workers ?? {}).forEach((worker) => worker?.kill());
-    console.log(cluster.workers);
-  }
-});
+afterAll(() => {});
 
 describe('Logic Service', () => {
   beforeEach(() => {
