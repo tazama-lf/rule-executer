@@ -20,6 +20,7 @@ import {
   NetworkMapSample,
   DataCacheSample,
 } from '@tazama-lf/frms-coe-lib/lib/tests/data';
+import cluster from 'cluster';
 
 jest.mock('@tazama-lf/frms-coe-lib/lib/config/processor.config', () => ({
   validateProcessorConfig: jest.fn().mockReturnValue({
@@ -79,7 +80,14 @@ beforeAll(async () => {
   runServer();
 });
 
-afterAll(() => {});
+afterAll(() => {
+  if (cluster.isPrimary) {
+    // Kill all workers
+
+    Object.values(cluster.workers ?? {}).forEach((worker) => worker?.kill());
+    console.log(cluster.workers);
+  }
+});
 
 describe('Logic Service', () => {
   beforeEach(() => {
@@ -109,8 +117,8 @@ describe('Logic Service', () => {
     it('should respond with rule result of true for happy path', async () => {
       const expectedReq = getMockRequest();
       let resString: string = '';
-      server.handleResponse = (reponse: unknown): Promise<void> => {
-        resString = reponse as string;
+      server.handleResponse = (response: unknown): Promise<void> => {
+        resString = response as string;
         return Promise.resolve();
       };
 
