@@ -1,54 +1,65 @@
 // SPDX-License-Identifier: Apache-2.0
 import {
-  CreateDatabaseManager,
   LoggerService,
   type DatabaseManagerInstance,
 } from '@tazama-lf/frms-coe-lib';
+import { Database } from '@tazama-lf/frms-coe-lib/lib/config/database.config';
+import { validateProcessorConfig } from '@tazama-lf/frms-coe-lib/lib/config/processor.config';
+import { Cache } from '@tazama-lf/frms-coe-lib/lib/config/redis.config';
+import {
+  CreateStorageManager,
+  type ManagerConfig,
+} from '@tazama-lf/frms-coe-lib/lib/services/dbManager';
 import {
   StartupFactory,
   type IStartupService,
 } from '@tazama-lf/frms-coe-startup-lib';
 import cluster from 'cluster';
-import NodeCache from 'node-cache';
 import os from 'os';
 import './apm';
-import { config } from './config';
+import { additionalEnvironmentVariables, type Configuration } from './config';
 import { execute } from './controllers/execute';
 
-export const loggerService: LoggerService = new LoggerService(
-  config.sidecarHost,
-);
+let configuration = validateProcessorConfig(
+  additionalEnvironmentVariables,
+) as Configuration;
+
+export const loggerService: LoggerService = new LoggerService(configuration);
 export let server: IStartupService;
 
-let databaseManager: DatabaseManagerInstance<typeof config.db>;
+let databaseManager: DatabaseManagerInstance<ManagerConfig>;
 const logContext = 'startup';
 
 const runServer = async (): Promise<void> => {
   server = new StartupFactory();
-  if (config.nodeEnv !== 'test') {
+  if (configuration.nodeEnv !== 'test') {
     let isConnected = false;
     for (let retryCount = 0; retryCount < 10; retryCount++) {
       loggerService.log(
         'Connecting to nats server...',
         logContext,
-        config.functionName,
+        configuration.functionName,
       );
       if (
         !(await server.init(
           execute,
           loggerService,
-          [`sub-rule-${config.ruleName}@${config.ruleVersion}`],
-          `pub-rule-${config.ruleName}@${config.ruleVersion}`,
+          [`sub-rule-${configuration.RULE_NAME}@${configuration.RULE_VERSION}`],
+          `pub-rule-${configuration.RULE_NAME}@${configuration.RULE_VERSION}`,
         ))
       ) {
         loggerService.warn(
           `Unable to connect, retry count: ${retryCount}`,
           logContext,
-          config.functionName,
+          configuration.functionName,
         );
         await new Promise((resolve) => setTimeout(resolve, 5000));
       } else {
-        loggerService.log('Connected to nats', logContext, config.functionName);
+        loggerService.log(
+          'Connected to nats',
+          logContext,
+          configuration.functionName,
+        );
         isConnected = true;
         break;
       }
@@ -60,15 +71,27 @@ const runServer = async (): Promise<void> => {
   }
 };
 const numCPUs =
-  os.cpus().length > config.maxCPU ? config.maxCPU + 1 : os.cpus().length + 1;
+  os.cpus().length > configuration.maxCPU
+    ? configuration.maxCPU + 1
+    : os.cpus().length + 1;
 
 export const initializeDB = async (): Promise<void> => {
-  const manager = await CreateDatabaseManager(config.db);
-  databaseManager = manager;
+  const auth = configuration.nodeEnv === 'production';
+  const { config, db } = await CreateStorageManager(
+    [
+      Database.CONFIGURATION,
+      Database.PSEUDONYMS,
+      Database.TRANSACTION_HISTORY,
+      Cache.LOCAL,
+    ],
+    auth,
+  );
+  databaseManager = db;
+  configuration = { ...configuration, ...config };
   loggerService.log(
     JSON.stringify(databaseManager.isReadyCheck()),
     logContext,
-    config.functionName,
+    configuration.functionName,
   );
 };
 
@@ -76,7 +99,7 @@ process.on('uncaughtException', (err) => {
   loggerService.error(
     `process on uncaughtException error: ${JSON.stringify(err)}`,
     logContext,
-    config.functionName,
+    configuration.functionName,
   );
 });
 
@@ -84,11 +107,11 @@ process.on('unhandledRejection', (err) => {
   loggerService.error(
     `process on unhandledRejection error: ${JSON.stringify(err)}`,
     logContext,
-    config.functionName,
+    configuration.functionName,
   );
 });
 
-if (cluster.isPrimary && config.maxCPU !== 1) {
+if (cluster.isPrimary && configuration.maxCPU !== 1) {
   loggerService.log(`Primary ${process.pid} is running`);
 
   // Fork workers.
@@ -113,7 +136,7 @@ if (cluster.isPrimary && config.maxCPU !== 1) {
           'Error while starting services',
           err as Error,
           logContext,
-          config.functionName,
+          configuration.functionName,
         );
         process.exit(1);
       }
@@ -121,5 +144,4 @@ if (cluster.isPrimary && config.maxCPU !== 1) {
   }
 }
 
-export const cache = new NodeCache();
-export { databaseManager, runServer };
+export { configuration, databaseManager, runServer };
