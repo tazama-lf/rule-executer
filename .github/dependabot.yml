@@ -8,3 +8,35 @@ updates:
     directory: '/'
     schedule:
       interval: 'weekly'
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    target-branch: "dev"
+    allow:
+      - dependency-name: "@tazama-lf/frms-coe-lib"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    target-branch: "main"
+    allow:
+      - dependency-name: "@tazama-lf/frms-coe-lib"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "dev"
+    allow:
+      - dependency-name: "@tazama-lf/frms-coe-startup-lib"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "main"
+    allow:
+      - dependency-name: "@tazama-lf/frms-coe-startup-lib"
