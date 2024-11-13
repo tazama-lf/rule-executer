@@ -16,6 +16,7 @@ updates:
     target-branch: "dev"
     allow:
       - dependency-name: "@tazama-lf/frms-coe-lib"
+      - dependency-name: "@tazama-lf/frms-coe-startup-lib"
     registries:
       - github
 
@@ -26,25 +27,6 @@ updates:
     target-branch: "main"
     allow:
       - dependency-name: "@tazama-lf/frms-coe-lib"
-    registries:
-      - github
-
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    target-branch: "dev"
-    allow:
-      - dependency-name: "@tazama-lf/frms-coe-startup-lib"
-    registries:
-      - github
-
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    target-branch: "main"
-    allow:
       - dependency-name: "@tazama-lf/frms-coe-startup-lib"
     registries:
       - github
