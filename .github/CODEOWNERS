@@ -3,7 +3,7 @@
 # CODEOWNERS
 
 # These owners will be the default owners for everything in the repo.
-*                       @tazama-lf/Sybrin @tazama-lf/Maintainers
+*                       @tazama-lf/si/sybrin
 
 # These two lines MUST be last in your CODEOWNERS file.
-.github/CODEOWNERS      @tazama-lf/admins
+.github/CODEOWNERS      @tazama-lf/staff
