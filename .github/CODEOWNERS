@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# CODEOWNERS
+
+# These owners will be the default owners for everything in the repo.
+*                       @tazama-lf/Sybrin @tazama-lf/Maintainers
+
+# These two lines MUST be last in your CODEOWNERS file.
+.github/CODEOWNERS      @tazama-lf/admins
