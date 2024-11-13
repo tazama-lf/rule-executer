@@ -15,7 +15,8 @@ updates:
       interval: "daily"
     target-branch: "dev"
     allow:
-      - dependency-name: "@tazama-lf/*"
+      - dependency-name: "@tazama-lf/frms-coe-lib"
+      - dependency-name: "@tazama-lf/frms-coe-startup-lib"
     registries:
       - github
 
@@ -25,7 +26,8 @@ updates:
       interval: "daily"
     target-branch: "main"
     allow:
-      - dependency-name: "@tazama-lf/*"
+      - dependency-name: "@tazama-lf/frms-coe-lib"
+      - dependency-name: "@tazama-lf/frms-coe-startup-lib"
     registries:
       - github
 
