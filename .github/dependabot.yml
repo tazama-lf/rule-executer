@@ -15,8 +15,7 @@ updates:
       interval: "daily"
     target-branch: "dev"
     allow:
-      - dependency-name: "@tazama-lf/frms-coe-lib"
-      - dependency-name: "@tazama-lf/frms-coe-startup-lib"
+      - dependency-name: "@tazama-lf/*"
     registries:
       - github
 
@@ -26,8 +25,7 @@ updates:
       interval: "daily"
     target-branch: "main"
     allow:
-      - dependency-name: "@tazama-lf/frms-coe-lib"
-      - dependency-name: "@tazama-lf/frms-coe-startup-lib"
+      - dependency-name: "@tazama-lf/*"
     registries:
       - github
 
@@ -35,4 +33,5 @@ registries:
   github:
     type: "npm-registry"
     url: "https://npm.pkg.github.com"
+    organization: tazama-lf
     token: "${{ secrets.GITHUB_TOKEN }}"
