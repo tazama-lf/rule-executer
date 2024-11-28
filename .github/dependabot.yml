@@ -20,17 +20,6 @@ updates:
     registries:
       - github
 
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    target-branch: "main"
-    allow:
-      - dependency-name: "@tazama-lf/frms-coe-lib"
-      - dependency-name: "@tazama-lf/frms-coe-startup-lib"
-    registries:
-      - github
-
 registries:
   github:
     type: "npm-registry"
