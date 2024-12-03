@@ -3,23 +3,72 @@ import {
   DatabaseManagerInstance,
   LoggerService,
   ManagerConfig,
-} from '@frmscoe/frms-coe-lib';
+} from '@tazama-lf/frms-coe-lib';
 import {
   NetworkMap,
   RuleConfig,
   RuleRequest,
   RuleResult,
-} from '@frmscoe/frms-coe-lib/lib/interfaces';
+} from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import ioredis from 'ioredis-mock';
 import { handleTransaction } from 'rule/lib';
 import { initializeDB, runServer, server } from '../../src';
-import { config } from '../../src/config';
+import { configuration } from '../../src';
 import { execute } from '../../src/controllers/execute';
 import {
   Pacs002Sample,
   NetworkMapSample,
   DataCacheSample,
-} from '@frmscoe/frms-coe-lib/lib/tests/data';
+} from '@tazama-lf/frms-coe-lib/lib/tests/data';
+import cluster from 'cluster';
+
+jest.mock('@tazama-lf/frms-coe-lib/lib/config/processor.config', () => ({
+  validateProcessorConfig: jest.fn().mockReturnValue({
+    functionName: 'test-ed',
+    nodeEnv: 'test',
+  }),
+}));
+
+jest.mock('@tazama-lf/frms-coe-lib/lib/services/dbManager', () => ({
+  CreateStorageManager: jest.fn().mockReturnValue({
+    db: {
+      set: jest.fn(),
+      quit: jest.fn(),
+      isReadyCheck: jest.fn().mockReturnValue({ nodeEnv: 'test' }),
+    },
+    config: {
+      RULE_NAME: 'test-101',
+      RULE_VERSION: '1.0.1',
+    },
+  }),
+}));
+
+jest.mock('@tazama-lf/frms-coe-lib/lib/services/apm', () => ({
+  Apm: jest.fn().mockReturnValue({
+    startSpan: jest.fn(),
+    getCurrentTraceparent: jest.fn().mockReturnValue(''),
+    startTransaction: jest.fn(),
+  }),
+}));
+
+jest.mock(
+  '@tazama-lf/frms-coe-startup-lib/lib/interfaces/iStartupConfig',
+  () => ({
+    startupConfig: {
+      startupType: 'nats',
+      consumerStreamName: 'consumer',
+      serverUrl: 'server',
+      producerStreamName: 'producer',
+      functionName: 'producer',
+    },
+  }),
+);
+
+jest.mock('cluster', () => ({
+  isMaster: true,
+  fork: jest.fn(),
+  on: jest.fn(),
+}));
 
 const getMockRequest = () => {
   const quote: RuleRequest = {
@@ -30,7 +79,7 @@ const getMockRequest = () => {
   return quote;
 };
 
-const loggerService: LoggerService = new LoggerService();
+const loggerService: LoggerService = new LoggerService(configuration);
 
 beforeAll(async () => {
   await initializeDB();
@@ -41,7 +90,7 @@ afterAll(() => {});
 
 describe('Logic Service', () => {
   beforeEach(() => {
-    config.ruleVersion = '1.0.0';
+    configuration.RULE_VERSION = '1.0.0';
     jest.mock('ioredis', () => ioredis);
     jest
       .fn(handleTransaction)
@@ -67,8 +116,8 @@ describe('Logic Service', () => {
     it('should respond with rule result of true for happy path', async () => {
       const expectedReq = getMockRequest();
       let resString: string = '';
-      server.handleResponse = (reponse: unknown): Promise<void> => {
-        resString = reponse as string;
+      server.handleResponse = (response: unknown): Promise<void> => {
+        resString = response as string;
         return Promise.resolve();
       };
 

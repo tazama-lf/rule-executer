@@ -2,7 +2,7 @@
 import {
   type RuleConfig,
   type RuleResult,
-} from '@frmscoe/frms-coe-lib/lib/interfaces';
+} from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import { loggerService } from '..';
 
 const determineOutcome = (
