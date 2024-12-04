@@ -12,7 +12,7 @@ jobs:
   automate-rule-executer:
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
       # Step 1: Checkout repository
@@ -21,7 +21,7 @@ jobs:
 
       - name: Set up NPM authentication
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_TOKEN_LIB }}" > ~/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_TOKEN }}" > ~/.npmrc
           cat .npmrc
 
       # Verify Changes in modified files
@@ -35,7 +35,7 @@ jobs:
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           echo "Packaging rule processors into Docker image..."
           docker build -t tazamaorg/rule-901:2.1.0 . 
