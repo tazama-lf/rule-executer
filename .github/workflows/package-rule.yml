@@ -12,7 +12,7 @@ jobs:
   automate-rule-executer:
     runs-on: ubuntu-latest
     env:
-      GITHUB_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
       # Step 1: Checkout repository
@@ -21,7 +21,7 @@ jobs:
 
       - name: Set up NPM authentication
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_TOKEN_LIB }}" > ~/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GH_TOKEN }}" > ~/.npmrc
           cat .npmrc
 
       # Verify Changes in modified files
@@ -33,7 +33,7 @@ jobs:
       # Step 5: Build Rule Packages
       - name: Build Rule Packages
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           echo "Building rule 901 package..."
           npm install
