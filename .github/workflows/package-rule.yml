@@ -38,7 +38,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Packaging rule processors into Docker image..."
-          docker build -t tazamaorg/rule-901:2.1.0 . 
+          docker build -t tazamaorg/rule-901:2.1.0 . --build-arg GH_TOKEN=${{ secrets.GITHUB_TOKEN_LIB }}
           echo "Logging into DockerHub..."
           echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
           docker push tazamaorg/rule-901:2.1.0
