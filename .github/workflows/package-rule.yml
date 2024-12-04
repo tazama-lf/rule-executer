@@ -32,6 +32,8 @@ jobs:
 
       # Step 5: Build Rule Packages
       - name: Build Rule Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_LIB }}
         run: |
           echo "Building rule 901 package..."
           npm install
