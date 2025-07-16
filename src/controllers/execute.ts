@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 import apm from '../apm';
+
 import { unwrap } from '@tazama-lf/frms-coe-lib/lib/helpers/unwrap';
 import type { RuleConfig, RuleRequest, RuleResult } from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import type { MetaData } from '@tazama-lf/frms-coe-lib/lib/interfaces/MetaData';
+import * as util from 'node:util';
 import { handleTransaction } from 'rule/lib';
 import { databaseManager, loggerService, server } from '..';
 import { configuration } from '../';
@@ -22,7 +24,12 @@ export const execute = async (reqObj: unknown): Promise<void> => {
 
   // Get required information from the incoming request
   try {
-    const message = reqObj as RuleRequest & { metaData: MetaData };
+    const message = reqObj as RuleRequest & { metaData: MetaData | undefined };
+
+    if (!('transaction' in message)) throw new Error('Missing in request: transaction');
+    if (!('networkMap' in message)) throw new Error('Missing in request: networkMap');
+    if (!('DataCache' in message)) throw new Error('Missing in request: DataCache');
+
     request = {
       transaction: message.transaction,
       networkMap: message.networkMap,
@@ -70,12 +77,12 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     const sRuleConfig = await databaseManager.getRuleConfig(ruleRes.id, ruleRes.cfg);
     spanRuleConfig?.end();
     ruleConfig = unwrap<RuleConfig>(sRuleConfig as RuleConfig[][]);
-    if (!ruleConfig) {
+    if (!ruleConfig?.config) {
       throw new Error('Rule processor configuration not retrievable');
     }
   } catch (error) {
     spanRuleConfig?.end();
-    loggerService.error('Error while getting rule configuration', error, context, configuration.functionName);
+    loggerService.error('Error while getting rule configuration', util.inspect(error), context, configuration.functionName);
     ruleRes.prcgTm = calculateDuration(startTime);
     ruleRes = {
       ...ruleRes,
@@ -114,7 +121,9 @@ export const execute = async (reqObj: unknown): Promise<void> => {
 
   const spanResponse = apm.startSpan(`send.to.typroc.${ruleRes.id}`);
   try {
-    request.metaData.traceParent = apm.getCurrentTraceparent();
+    if (request.metaData) {
+      request.metaData.traceParent = apm.getCurrentTraceparent();
+    }
     // happy path, we don't need reason
     if (ruleRes.reason) {
       loggerService.log(ruleRes.reason, context);
@@ -131,11 +140,6 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   } catch (error) {
     const failMessage = 'Failed to send to Typology Processor.';
     loggerService.error(failMessage, error, context, configuration.functionName);
-    ruleRes = {
-      ...ruleRes,
-      subRuleRef: '.err',
-      reason: (error as Error).message,
-    };
   } finally {
     spanResponse?.end();
   }

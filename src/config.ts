@@ -20,5 +20,5 @@ export interface ExtendedConfig {
   RULE_VERSION: string;
 }
 
-type Databases = Required<Pick<ManagerConfig, 'transactionHistory' | 'pseudonyms' | 'configuration' | 'localCacheConfig'>>;
-export type Configuration = ProcessorConfig & Databases & ExtendedConfig;
+export type RuleExecutorConfig = Required<Pick<ManagerConfig, 'transactionHistory' | 'pseudonyms' | 'configuration' | 'localCacheConfig'>>;
+export type Configuration = ProcessorConfig & RuleExecutorConfig & ExtendedConfig;

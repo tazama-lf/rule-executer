@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import './apm';
+
 import { LoggerService, type DatabaseManagerInstance } from '@tazama-lf/frms-coe-lib';
 import { Database } from '@tazama-lf/frms-coe-lib/lib/config/database.config';
 import { validateProcessorConfig } from '@tazama-lf/frms-coe-lib/lib/config/processor.config';
@@ -8,6 +9,7 @@ import { CreateStorageManager } from '@tazama-lf/frms-coe-lib/lib/services/dbMan
 import { StartupFactory, type IStartupService } from '@tazama-lf/frms-coe-startup-lib';
 import cluster from 'node:cluster';
 import os from 'node:os';
+import * as util from 'node:util';
 import { setTimeout } from 'node:timers/promises';
 import { additionalEnvironmentVariables, type Configuration } from './config';
 import { execute } from './controllers/execute';
@@ -58,15 +60,15 @@ export const initializeDB = async (): Promise<void> => {
   );
   databaseManager = db;
   configuration = { ...configuration, ...config };
-  loggerService.log(JSON.stringify(databaseManager.isReadyCheck()), logContext, configuration.functionName);
+  loggerService.log(util.inspect(databaseManager.isReadyCheck()), logContext, configuration.functionName);
 };
 
 process.on('uncaughtException', (err) => {
-  loggerService.error(`process on uncaughtException error: ${JSON.stringify(err)}`, logContext, configuration.functionName);
+  loggerService.error(`process on uncaughtException error: ${util.inspect(err)}`, logContext, configuration.functionName);
 });
 
 process.on('unhandledRejection', (err) => {
-  loggerService.error(`process on unhandledRejection error: ${JSON.stringify(err)}`, logContext, configuration.functionName);
+  loggerService.error(`process on unhandledRejection error: ${util.inspect(err)}`, logContext, configuration.functionName);
 });
 
 if (cluster.isPrimary && configuration.maxCPU !== 1) {
@@ -87,8 +89,8 @@ if (cluster.isPrimary && configuration.maxCPU !== 1) {
       try {
         await initializeDB();
         await runServer();
-      } catch (err) {
-        loggerService.error('Error while starting services', err as Error, logContext, configuration.functionName);
+      } catch (err: unknown) {
+        loggerService.error('Error while starting services', util.inspect(err), logContext, configuration.functionName);
         process.exit(1);
       }
     })();
