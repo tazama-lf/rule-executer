@@ -60,11 +60,11 @@ const ruleConfig: RuleConfig = {
         reason: 'Band Example 02',
       },
     ],
-    case: [
+    cases: [
       {
         reason: 'testCaseReason',
         subRuleRef: 'case01',
-        value: 0,
+        value: '0',
       },
     ],
     timeframes: [
@@ -395,11 +395,11 @@ describe('Logic Service', () => {
               reason: 'Band Example 02',
             },
           ],
-          case: [
+          cases: [
             {
               reason: 'testCaseReason',
               subRuleRef: 'case01',
-              value: 0,
+              value: '0',
             },
           ],
         },
