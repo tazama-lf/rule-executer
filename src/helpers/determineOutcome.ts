@@ -1,16 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
-import {
-  type RuleConfig,
-  type RuleResult,
-} from '@tazama-lf/frms-coe-lib/lib/interfaces';
+import type { RuleConfig, RuleResult } from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import { loggerService } from '..';
 
-const determineOutcome = (
-  value: number,
-  ruleConfig: RuleConfig,
-  ruleResult: RuleResult,
-): RuleResult => {
-  if (ruleConfig.config.bands && ruleConfig.config.case) {
+const determineOutcome = (value: number, ruleConfig: RuleConfig, ruleResult: RuleResult): RuleResult => {
+  if (ruleConfig.config.bands && ruleConfig.config.cases) {
     const reason = 'Rule processor configuration invalid';
     loggerService.error(reason);
     return {
@@ -19,22 +12,17 @@ const determineOutcome = (
     };
   }
 
-  const bands = ruleConfig.config.bands;
+  const { bands } = ruleConfig.config;
   if (bands && (value || value === 0)) {
     for (const band of bands) {
-      if (
-        (!band.lowerLimit || value >= band.lowerLimit) &&
-        (!band.upperLimit || value < band.upperLimit)
-      ) {
+      if ((!band.lowerLimit || value >= band.lowerLimit) && (!band.upperLimit || value < band.upperLimit)) {
         ruleResult.subRuleRef = band.subRuleRef;
         ruleResult.reason = band.reason;
         break;
       }
     }
   } else {
-    throw new Error(
-      'Value provided undefined, so cannot determine rule outcome',
-    );
+    throw new Error('Value provided undefined, so cannot determine rule outcome');
   }
   return ruleResult;
 };
