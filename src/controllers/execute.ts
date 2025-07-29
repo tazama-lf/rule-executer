@@ -3,7 +3,7 @@ import apm from '../apm';
 
 import { unwrap } from '@tazama-lf/frms-coe-lib/lib/helpers/unwrap';
 import type { RuleConfig, RuleRequest, RuleResult } from '@tazama-lf/frms-coe-lib/lib/interfaces';
-import type { MetaData } from '@tazama-lf/frms-coe-lib/lib/interfaces/MetaData';
+import type { MetaData } from '@tazama-lf/frms-coe-lib/lib/interfaces/metaData';
 import * as util from 'node:util';
 import { handleTransaction } from 'rule/lib';
 import { databaseManager, loggerService, server } from '..';
