@@ -5,7 +5,7 @@ name: Rule Executer - Rule processor Automation
 on:
   push:
     branches:
-      - main
+      - dev
   workflow_dispatch:
 
 jobs:
@@ -44,11 +44,11 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           echo "Packaging rule processors into Docker image..."
-          docker build -t tazamaorg/rule-901:2.2.0
+          docker build -t tazamaorg/rule-901:rc
           echo "Logging into DockerHub..."
           echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
-          docker push tazamaorg/rule-901:2.2.0
-          docker rmi tazamaorg/rule-901:2.2.0
+          docker push tazamaorg/rule-901:rc
+          docker rmi tazamaorg/rule-901:rc
           echo "Docker Image creation and push complete."
 
       # Step 5: Send Slack Notification
@@ -56,4 +56,4 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"blocks": [{"type": "header","text": {"type": "plain_text","text": "New Rule Dockerhub Image published :ship:","emoji": true}},{"type": "section","fields": [{"type": "mrkdwn","text": "*Service:*\nRule-901"},{"type": "mrkdwn","text": "*Tazama Dockerhub:*\n<https://hub.docker.com/orgs/tazamaorg/repositories>"}]}]}' $SLACK_WEBHOOK_URL
+          curl -X POST -H 'Content-type: application/json' --data '{"blocks": [{"type": "header","text": {"type": "plain_text","text": "New Rule Release Candidate Dockerhub Image published :ship:","emoji": true}},{"type": "section","fields": [{"type": "mrkdwn","text": "*Service:*\nRule-901"},{"type": "mrkdwn","text": "*Tazama Dockerhub:*\n<https://hub.docker.com/orgs/tazamaorg/repositories>"}]}]}' $SLACK_WEBHOOK_URL
