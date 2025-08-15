@@ -1,7 +1,7 @@
 {
   "name": "rule-executer",
-  "version": "1.2.0",
-  "description": "Actio FRM Rule Executer",
+  "version": "2.2.0",
+  "description": "Tazama Rule Executer for rule processor wrapping",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
@@ -22,13 +22,14 @@
     "test:watch": "jest --config=jest.config.ts --watch"
   },
   "keywords": [],
+  "author": "Tazama.org",
   "license": "Apache-2.0",
   "dependencies": {
     "@tazama-lf/frms-coe-lib": "6.0.0-rc.1",
     "@tazama-lf/frms-coe-startup-lib": "2.4.0-rc.4",
     "dotenv": "^17.2.0",
     "node-cache": "^5.1.2",
-    "rule": "npm:@tazama-lf/rule-901@2.1.1-rc.0",
+    "rule": "npm:@tazama-lf/rule-901@2.2.0",
     "tslib": "^2.8.1"
   },
   "devDependencies": {
