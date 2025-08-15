@@ -57,21 +57,41 @@ export class TenantConfigManager {
         if (!sRuleConfig || (Array.isArray(sRuleConfig) && sRuleConfig.length === 0)) {
           this.loggerService.log(`No tenant-specific rule config found, falling back to default for rule: ${ruleId}`, context);
           sRuleConfig = await this.databaseManager.getRuleConfig(ruleId, cfg);
+
+          // FIXED: Use default cache key when storing default config to prevent cache inconsistency
+          const ruleConfig = unwrap<RuleConfig>(sRuleConfig as RuleConfig[][]);
+          if (ruleConfig?.config) {
+            const defaultCacheKey = this.buildCacheKey(ruleId, cfg); // No tenantId = default key
+            this.setInCache(defaultCacheKey, ruleConfig);
+            this.loggerService.log(`Cached default rule configuration (fallback): ${defaultCacheKey}`, context);
+            return ruleConfig;
+          } else {
+            throw new Error('Rule processor configuration not retrievable');
+          }
+        } else {
+          // Tenant-specific config found, cache with tenant key
+          const ruleConfig = unwrap<RuleConfig>(sRuleConfig as RuleConfig[][]);
+          if (ruleConfig?.config) {
+            this.setInCache(cacheKey, ruleConfig); // Correct tenant-specific caching
+            this.loggerService.log(`Cached tenant-specific rule configuration: ${cacheKey}`, context);
+            return ruleConfig;
+          } else {
+            throw new Error('Rule processor configuration not retrievable');
+          }
         }
       } else {
         // No tenantId, use standard method
         sRuleConfig = await this.databaseManager.getRuleConfig(ruleId, cfg);
-      }
 
-      const ruleConfig = unwrap<RuleConfig>(sRuleConfig as RuleConfig[][]);
-
-      if (ruleConfig?.config) {
-        // Cache the result
-        this.setInCache(cacheKey, ruleConfig);
-        this.loggerService.log(`Cached rule configuration: ${cacheKey}`, context);
-        return ruleConfig;
-      } else {
-        throw new Error('Rule processor configuration not retrievable');
+        const ruleConfig = unwrap<RuleConfig>(sRuleConfig as RuleConfig[][]);
+        if (ruleConfig?.config) {
+          // Cache the result with default key
+          this.setInCache(cacheKey, ruleConfig);
+          this.loggerService.log(`Cached default rule configuration: ${cacheKey}`, context);
+          return ruleConfig;
+        } else {
+          throw new Error('Rule processor configuration not retrievable');
+        }
       }
     } catch (error) {
       this.loggerService.error(`Error retrieving rule configuration for ${cacheKey}`, error, context);

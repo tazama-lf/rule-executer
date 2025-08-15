@@ -165,6 +165,84 @@ describe('Multi-Tenant Functionality', () => {
       expect(tenantId).toBeUndefined();
     });
 
+    it('should return undefined for empty string TenantId', () => {
+      const transaction = {
+        TxTp: 'pacs.002.001.12',
+        TenantId: '',
+        FIToFIPmtSts: {},
+      };
+
+      const tenantId = extractTenantId(transaction);
+      expect(tenantId).toBeUndefined();
+    });
+
+    it('should return undefined for whitespace-only TenantId', () => {
+      const transaction = {
+        TxTp: 'pacs.002.001.12',
+        TenantId: '   ',
+        FIToFIPmtSts: {},
+      };
+
+      const tenantId = extractTenantId(transaction);
+      expect(tenantId).toBeUndefined();
+    });
+
+    it('should trim and return valid TenantId with whitespace', () => {
+      const transaction = {
+        TxTp: 'pacs.002.001.12',
+        TenantId: '  tenant-123  ',
+        FIToFIPmtSts: {},
+      };
+
+      const tenantId = extractTenantId(transaction);
+      expect(tenantId).toBe('tenant-123');
+    });
+
+    it('should cache default config with default key when tenant config not found (cache consistency fix)', async () => {
+      const defaultConfig: RuleConfig = {
+        id: '901@1.0.0',
+        cfg: '1.0.0',
+        desc: 'Default rule config',
+        config: {
+          bands: [{ subRuleRef: '.01', lowerLimit: 10, upperLimit: 50, reason: 'Default threshold' }],
+        },
+      };
+
+      // First request: tenant-specific not found, should fallback to default
+      mockDatabaseManager.queryConfigurationDB.mockResolvedValueOnce([]); // No tenant config
+      mockDatabaseManager.getRuleConfig.mockResolvedValueOnce([[defaultConfig]]); // Default config
+
+      const result1 = await configManager.getRuleConfig('901@1.0.0', '1.0.0', 'tenant1');
+
+      expect(result1).toEqual(defaultConfig);
+      expect(mockDatabaseManager.queryConfigurationDB).toHaveBeenCalledTimes(1);
+      expect(mockDatabaseManager.getRuleConfig).toHaveBeenCalledTimes(1);
+
+      // Verify cache statistics show both default and tenant entries appropriately
+      const stats = configManager.getCacheStats();
+      expect(stats.totalEntries).toBeGreaterThan(0);
+
+      // Second request for same tenant should still check database for tenant config
+      // This verifies the fix: default config should NOT be cached with tenant key
+      const tenantConfig: RuleConfig = {
+        id: 'tenant1-901@1.0.0',
+        cfg: '1.0.0',
+        desc: 'Tenant-specific rule config (newly added)',
+        config: {
+          bands: [{ subRuleRef: '.01', lowerLimit: 5, upperLimit: 25, reason: 'Tenant threshold' }],
+        },
+      };
+
+      // Mock that tenant config is now available
+      mockDatabaseManager.queryConfigurationDB.mockResolvedValueOnce([[tenantConfig]]);
+
+      const result2 = await configManager.getRuleConfig('901@1.0.0', '1.0.0', 'tenant1');
+
+      // Should get the new tenant-specific config, proving cache consistency fix works
+      expect(result2).toEqual(tenantConfig);
+      expect(mockDatabaseManager.queryConfigurationDB).toHaveBeenCalledTimes(2); // Second database check occurred
+    });
+
     it('should correctly identify transaction with TenantId', () => {
       const transactionWithTenant = {
         TxTp: 'pacs.002.001.12',

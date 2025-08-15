@@ -27,8 +27,8 @@ export function hasTenantId(transaction: unknown): transaction is TransactionWit
  * Extract tenant ID from transaction payload
  */
 export function extractTenantId(transaction: unknown): string | undefined {
-  if (hasTenantId(transaction) && typeof transaction.TenantId === 'string') {
-    return transaction.TenantId;
+  if (hasTenantId(transaction) && typeof transaction.TenantId === 'string' && transaction.TenantId.trim()) {
+    return transaction.TenantId.trim();
   }
   return undefined;
 }
