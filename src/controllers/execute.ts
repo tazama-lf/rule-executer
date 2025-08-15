@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
 import apm from '../apm';
-
-import { unwrap } from '@tazama-lf/frms-coe-lib/lib/helpers/unwrap';
 import type { RuleConfig, RuleRequest, RuleResult } from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import type { MetaData } from '@tazama-lf/frms-coe-lib/lib/interfaces/metaData';
 import * as util from 'node:util';
@@ -74,9 +72,8 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   const spanRuleConfig = apm.startSpan(`db.get.ruleconfig.${ruleRes.id}`);
   try {
     if (!ruleRes.cfg) throw new Error('Rule not found in network map');
-    const sRuleConfig = await databaseManager.getRuleConfig(ruleRes.id, ruleRes.cfg);
+    ruleConfig = await databaseManager.getRuleConfig(ruleRes.id, ruleRes.cfg);
     spanRuleConfig?.end();
-    ruleConfig = unwrap<RuleConfig>(sRuleConfig as RuleConfig[][]);
     if (!ruleConfig?.config) {
       throw new Error('Rule processor configuration not retrievable');
     }
