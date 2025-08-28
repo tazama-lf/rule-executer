@@ -25,8 +25,8 @@
   "author": "Tazama.org",
   "license": "Apache-2.0",
   "dependencies": {
-    "@tazama-lf/frms-coe-lib": "5.1.0",
-    "@tazama-lf/frms-coe-startup-lib": "2.4.0",
+    "@tazama-lf/frms-coe-lib": "6.0.0-rc.3",
+    "@tazama-lf/frms-coe-startup-lib": "2.4.0-rc.4",
     "dotenv": "^17.2.0",
     "node-cache": "^5.1.2",
     "rule": "npm:@tazama-lf/rule-901@2.2.0",
@@ -48,6 +48,7 @@
     "lint-staged": "^16.1.2",
     "prettier": "^3.6.2",
     "ts-jest": "^29.4.0",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "lint-staged": {
