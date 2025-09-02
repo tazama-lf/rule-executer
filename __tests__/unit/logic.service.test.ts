@@ -37,7 +37,13 @@ const ruleConfig: RuleConfig = {
       { subRuleRef: '.01', upperLimit: 1, reason: 'Band Example 01' },
       { subRuleRef: '.02', lowerLimit: 1, upperLimit: 2, reason: 'Band Example 02' },
     ],
-    cases: [{ reason: 'testCaseReason', subRuleRef: 'case01', value: '0' }],
+    cases: {
+      expressions: [],
+      alternative: {
+        subRuleRef: 'case01',
+        reason: 'testCaseReason',
+      },
+    },
     timeframes: [{ threshold: 0 }],
   },
 };
@@ -47,7 +53,7 @@ const ruleRes: RuleResult = { cfg: '1.0', id: '003@1.0', subRuleRef: '', prcgTm:
 const getMockRequest = () => {
   const quote: RuleRequest = {
     transaction: Object.assign({}, Pacs002Sample),
-    networkMap: Object.assign(new NetworkMap(), NetworkMapSample[0][0]),
+    networkMap: NetworkMapSample[0],
     DataCache: Object.assign({}, DataCacheSample),
   };
   return quote;
@@ -295,7 +301,13 @@ describe('Logic Service', () => {
             { subRuleRef: '.01', upperLimit: 1, reason: 'Band Example 01' },
             { subRuleRef: '.02', lowerLimit: 1, upperLimit: 2, reason: 'Band Example 02' },
           ],
-          cases: [{ reason: 'testCaseReason', subRuleRef: 'case01', value: '0' }],
+          cases: {
+            expressions: [],
+            alternative: {
+              subRuleRef: 'case01',
+              reason: 'testCaseReason',
+            },
+          },
         },
       };
       const result = determineOutcome(value, localRuleConfig, ruleRes);
