@@ -8,8 +8,7 @@ import { handleTransaction } from 'rule/lib';
 import { databaseManager, loggerService, server } from '..';
 import { configuration } from '../';
 import determineOutcome from '../helpers/determineOutcome';
-import { TenantConfigManager } from '../helpers/tenantConfigManager';
-import { extractTenantId, type TenantAwareRuleRequest } from '../types/tenantTypes';
+import { unwrap } from '@tazama-lf/frms-coe-lib/lib/helpers/unwrap';
 
 const calculateDuration = (startTime: bigint): number => {
   const endTime: bigint = process.hrtime.bigint();
@@ -19,7 +18,6 @@ const calculateDuration = (startTime: bigint): number => {
 export const execute = async (reqObj: unknown): Promise<void> => {
   let request;
   let traceParent: string | undefined;
-  let tenantId: string | undefined;
   let context = `Rule-${configuration.RULE_NAME} execute()`;
   loggerService.log('Start - Handle execute request', context, configuration.functionName);
   const startTime = process.hrtime.bigint();
@@ -31,18 +29,6 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     if (!('transaction' in message)) throw new Error('Missing in request: transaction');
     if (!('networkMap' in message)) throw new Error('Missing in request: networkMap');
     if (!('DataCache' in message)) throw new Error('Missing in request: DataCache');
-
-    // Extract tenantId from transaction payload
-    tenantId = extractTenantId(message.transaction);
-    if (tenantId) {
-      loggerService.log(`Processing transaction for tenant: ${tenantId}`, context, configuration.functionName);
-    } else {
-      loggerService.warn(
-        'No TenantId found in transaction payload, processing with default configuration',
-        context,
-        configuration.functionName,
-      );
-    }
 
     request = {
       transaction: message.transaction,
@@ -88,22 +74,14 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   const spanRuleConfig = apm.startSpan(`db.get.ruleconfig.${ruleRes.id}`);
   try {
     if (!ruleRes.cfg) throw new Error('Rule not found in network map');
-
-    // Use tenant-aware configuration manager
-    const configManager = TenantConfigManager.getInstance(databaseManager, loggerService);
-    ruleConfig = await configManager.getRuleConfig(ruleRes.id, ruleRes.cfg, tenantId);
-
+    const sRuleConfig = await databaseManager.getRuleConfig(ruleRes.id, ruleRes.cfg);
     spanRuleConfig?.end();
+
+    ruleConfig = unwrap<RuleConfig>(sRuleConfig as RuleConfig[][]);
 
     if (!ruleConfig?.config) {
       throw new Error('Rule processor configuration not retrievable');
     }
-
-    loggerService.log(
-      `Retrieved rule configuration for ${tenantId ? `tenant ${tenantId}` : 'default'}: ${ruleRes.id}@${ruleRes.cfg}`,
-      context,
-      configuration.functionName,
-    );
   } catch (error) {
     spanRuleConfig?.end();
     loggerService.error('Error while getting rule configuration', util.inspect(error), context, configuration.functionName);
@@ -127,21 +105,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   try {
     loggerService.trace('Execute rule logic', context);
 
-    // Ensure the request includes tenant information for the rule processing
-    const enrichedRequest: TenantAwareRuleRequest = {
-      ...request,
-      tenantId, // Add tenantId to the request for rule processing
-    };
-
-    ruleRes = await handleTransaction(
-      enrichedRequest as RuleRequest,
-      determineOutcome,
-      ruleRes,
-      loggerService,
-      ruleConfig,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument -- Type mismatch between rule package and core library database manager interfaces
-      databaseManager as any,
-    );
+    ruleRes = await handleTransaction(request, determineOutcome, ruleRes, loggerService, ruleConfig, databaseManager);
 
     span?.end();
   } catch (error) {

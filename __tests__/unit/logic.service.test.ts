@@ -2,50 +2,14 @@
 import { NetworkMap, RuleConfig, RuleRequest, RuleResult } from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import { DataCacheSample, NetworkMapSample, Pacs002Sample } from '@tazama-lf/frms-coe-lib/lib/tests/data';
 import * as ruleLogic from 'rule/lib';
-import { configuration, databaseManager, initializeDB, loggerService, runServer, server } from '../../src';
+import { configuration, databaseManager, initializeDB, runServer, server } from '../../src';
 import { execute } from '../../src/controllers/execute';
 import determineOutcome from '../../src/helpers/determineOutcome';
-import { TenantConfigManager } from '../../src/helpers/tenantConfigManager';
 
 jest.mock('@tazama-lf/frms-coe-lib/lib/services/dbManager', () => ({
   CreateStorageManager: jest.fn().mockReturnValue({
     db: {
-      getRuleConfig: jest.fn().mockImplementation(async (ruleId: string, cfg: string) => {
-        // Return mock data for the default getRuleConfig path
-        return [
-          [
-            {
-              id: ruleId,
-              cfg: cfg,
-              config: {
-                exitConditions: undefined,
-                // add other required config properties as needed
-              },
-            },
-          ],
-        ];
-      }),
-      queryConfigurationDB: jest.fn().mockImplementation(async (collection: string, filter: string, limit?: number) => {
-        // Handle tenant-specific queries
-        if (collection === 'ruleConfiguration') {
-          // Return empty array to simulate no tenant-specific config found, forcing fallback to default
-          return [];
-        }
-
-        // For other queries, return default mock data
-        return {
-          ruleConfig: [
-            {
-              /* default rule config */
-            },
-          ],
-          typologyConfig: [
-            {
-              /* default typology config */
-            },
-          ],
-        };
-      }),
+      getRuleConfig: jest.fn(),
       isReadyCheck: jest.fn().mockReturnValue({ nodeEnv: 'test' }),
     },
   }),
@@ -69,18 +33,9 @@ jest.mock('@tazama-lf/frms-coe-startup-lib/lib/interfaces/iStartupConfig', () =>
   },
 }));
 
-jest.mock('../../src/apm', () => ({
-  startTransaction: jest.fn().mockReturnValue({
-    end: jest.fn(),
-  }),
-  startSpan: jest.fn().mockReturnValue({
-    end: jest.fn(),
-  }),
-  getCurrentTraceparent: jest.fn().mockReturnValue('test-trace-parent-id'),
-}));
-
 const ruleConfig: RuleConfig = {
-  id: '001@1.1.0',
+  id: 'DEFAULT-001@1.1.0',
+  tenantId: 'DEFAULT',
   desc: 'Test Rule',
   cfg: '1.0.0',
   config: {
@@ -153,9 +108,6 @@ describe('Logic Service', () => {
   beforeEach(() => {
     configuration.RULE_NAME = '003';
     configuration.RULE_VERSION = '1.0';
-
-    // Reset TenantConfigManager singleton for each test
-    (TenantConfigManager as any).instance = undefined;
 
     jest.spyOn(ruleLogic, 'handleTransaction').mockImplementationOnce(async (): Promise<RuleResult> => {
       return Promise.resolve(ruleRes);
@@ -373,216 +325,6 @@ describe('Logic Service', () => {
 
       expect(responseSpy).toThrow();
     });
-
-    // Additional test cases to improve execute.ts coverage
-    it('should handle TenantConfigManager database error', async () => {
-      jest.spyOn(databaseManager, 'getRuleConfig').mockRejectedValueOnce(new Error('Database connection failed'));
-      jest.spyOn(databaseManager, 'queryConfigurationDB').mockRejectedValueOnce(new Error('Database connection failed'));
-
-      const expectedReq = getMockRequest();
-      expectedReq.transaction.TenantId = 'test-tenant';
-
-      // Mock TenantConfigManager to simulate database error
-      const tenantConfigManager = TenantConfigManager.getInstance(databaseManager, loggerService);
-      jest.spyOn(tenantConfigManager, 'getRuleConfig').mockRejectedValueOnce(new Error('Config fetch failed'));
-
-      responseSpy = jest.spyOn(server, 'handleResponse').mockImplementationOnce(jest.fn());
-
-      await execute(expectedReq);
-
-      expect(responseSpy).toHaveBeenCalled();
-    });
-
-    it('should log rule result with reason when available', async () => {
-      const ruleResultWithReason = { ...ruleRes, reason: 'Test reason for logging', subRuleRef: '.err' };
-
-      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        return await Promise.resolve([[ruleConfig]]);
-      });
-
-      jest.spyOn(databaseManager, 'queryConfigurationDB').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        return await Promise.resolve([[ruleConfig]]);
-      });
-
-      // Mock handleTransaction to return result with reason and error subRuleRef
-      jest.spyOn(ruleLogic, 'handleTransaction').mockRestore();
-      jest.spyOn(ruleLogic, 'handleTransaction').mockImplementationOnce(async (): Promise<RuleResult> => {
-        return Promise.resolve(ruleResultWithReason);
-      });
-
-      const expectedReq = getMockRequest();
-      expectedReq.transaction.TenantId = 'test-tenant';
-
-      const loggerSpy = jest.spyOn(loggerService, 'log');
-      responseSpy = jest.spyOn(server, 'handleResponse').mockImplementationOnce(jest.fn());
-
-      await execute(expectedReq);
-
-      // Verify that handleResponse was called with the error result containing the reason
-      expect(responseSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          ruleResult: expect.objectContaining({
-            reason: 'Test reason for logging',
-            subRuleRef: '.err',
-          }),
-        }),
-      );
-
-      // Also verify the reason was logged - just check that log was called with the reason
-      const loggerCalls = loggerSpy.mock.calls;
-      const reasonLogExists = loggerCalls.some((call) => call[0] === 'Test reason for logging');
-      expect(reasonLogExists).toBe(true);
-    });
-
-    it('should preserve metaData trace context when available', async () => {
-      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        return await Promise.resolve([[ruleConfig]]);
-      });
-
-      jest.spyOn(databaseManager, 'queryConfigurationDB').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        return await Promise.resolve([[ruleConfig]]);
-      });
-
-      const expectedReq = getMockRequest();
-      expectedReq.metaData = { traceParent: 'original-trace-parent-id' } as any;
-
-      responseSpy = jest.spyOn(server, 'handleResponse').mockImplementationOnce(jest.fn());
-
-      await execute(expectedReq);
-
-      // Check that handleResponse was called with metaData - at minimum it should be an object
-      expect(responseSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          transaction: expectedReq.transaction,
-          networkMap: expectedReq.networkMap,
-          DataCache: expectedReq.DataCache,
-          metaData: expect.any(Object), // Just verify metaData is an object
-          ruleResult: expect.objectContaining({
-            cfg: '1.0',
-            id: '003@1.0',
-            subRuleRef: '',
-          }),
-        }),
-      );
-
-      // Verify that metaData object was passed through
-      const responseCalls = responseSpy.mock.calls;
-      const responseCall = responseCalls[0][0];
-      expect(responseCall.metaData).toBeDefined();
-      // traceParent can be undefined in test environment, so just check it exists as a property
-      expect('traceParent' in responseCall.metaData).toBe(true);
-    });
-
-    it('should handle logger service trace calls when metaData is present', async () => {
-      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        return await Promise.resolve([[ruleConfig]]);
-      });
-
-      jest.spyOn(databaseManager, 'queryConfigurationDB').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        return await Promise.resolve([[ruleConfig]]);
-      });
-
-      const expectedReq = getMockRequest();
-      expectedReq.metaData = { traceParent: 'test-trace-123' } as any;
-      expectedReq.transaction.TenantId = 'test-tenant';
-
-      const loggerSpy = jest.spyOn(loggerService, 'trace');
-      responseSpy = jest.spyOn(server, 'handleResponse').mockImplementationOnce(jest.fn());
-
-      await execute(expectedReq);
-
-      // Verify trace was called - should be called but may return null in test environment
-      expect(loggerSpy).toHaveBeenCalled();
-    });
-
-    it('should handle tenant extraction for different tenant ID patterns', async () => {
-      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        return await Promise.resolve([[ruleConfig]]);
-      });
-
-      jest.spyOn(databaseManager, 'queryConfigurationDB').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        return await Promise.resolve([[ruleConfig]]);
-      });
-
-      const expectedReq = getMockRequest();
-      expectedReq.transaction.TenantId = 'complex-tenant-id-123';
-
-      const loggerSpy = jest.spyOn(loggerService, 'log');
-      responseSpy = jest.spyOn(server, 'handleResponse').mockImplementationOnce(jest.fn());
-
-      await execute(expectedReq);
-
-      // Verify tenant processing was logged
-      expect(loggerSpy).toHaveBeenCalledWith(
-        'Processing transaction for tenant: complex-tenant-id-123',
-        'Rule-003 execute()',
-        'test-rule-executor',
-      );
-    });
-
-    it('should handle configuration validation edge cases', async () => {
-      // Test with configuration that has potential validation issues
-      const edgeCaseConfig: RuleConfig = {
-        ...ruleConfig,
-        config: {
-          ...ruleConfig.config,
-          parameters: {
-            testParam: '',
-            emptyParam: null,
-            numberParam: 0,
-          },
-        },
-      };
-
-      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        return await Promise.resolve([[edgeCaseConfig]]);
-      });
-
-      jest.spyOn(databaseManager, 'queryConfigurationDB').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        return await Promise.resolve([[edgeCaseConfig]]);
-      });
-
-      const expectedReq = getMockRequest();
-      expectedReq.transaction.TenantId = 'edge-case-tenant';
-
-      responseSpy = jest.spyOn(server, 'handleResponse').mockImplementationOnce(jest.fn());
-
-      await execute(expectedReq);
-
-      expect(responseSpy).toHaveBeenCalled();
-    });
-
-    it('should validate network map rules and configuration', async () => {
-      // Test with a modified network map that might trigger different validation paths
-      const modifiedNetworkMap = {
-        ...NetworkMapSample[0][0],
-        rules: [
-          {
-            id: '003@1.0',
-            cfg: '1.0',
-            ref: '.01',
-            reason: 'Modified rule for testing',
-          },
-        ],
-      };
-
-      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        return await Promise.resolve([[ruleConfig]]);
-      });
-
-      jest.spyOn(databaseManager, 'queryConfigurationDB').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        return await Promise.resolve([[ruleConfig]]);
-      });
-
-      const expectedReq = getMockRequest();
-      expectedReq.networkMap = Object.assign(new NetworkMap(), modifiedNetworkMap);
-
-      responseSpy = jest.spyOn(server, 'handleResponse').mockImplementationOnce(jest.fn());
-
-      await execute(expectedReq);
-
-      expect(responseSpy).toHaveBeenCalled();
-    });
   });
 
   describe('determineOutcome', () => {
@@ -591,6 +333,7 @@ describe('Logic Service', () => {
 
       const localRuleConfig: RuleConfig = {
         id: '003@1.0.0',
+        tenantId: 'DEFAULT',
         desc: 'Test Rule',
         cfg: '1.0.0',
         config: {
@@ -632,6 +375,7 @@ describe('Logic Service', () => {
 
       const localRuleConfig: RuleConfig = {
         id: '003@1.0.0',
+        tenantId: 'DEFAULT',
         desc: 'Test Rule',
         cfg: '1.0.0',
         config: {
@@ -679,6 +423,7 @@ describe('Logic Service', () => {
 
       const localRuleConfig: RuleConfig = {
         id: '003@1.0.0',
+        tenantId: 'DEFAULT',
         desc: 'Test Rule',
         cfg: '1.0.0',
         config: {
