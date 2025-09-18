@@ -49,6 +49,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
 
   let ruleRes: RuleResult = {
     id: `${configuration.RULE_NAME}@${configuration.RULE_VERSION}`,
+    tenantId: request.transaction.TenantId,
     cfg: '',
     subRuleRef: '.err',
     reason: 'Unhandled rule result outcome',

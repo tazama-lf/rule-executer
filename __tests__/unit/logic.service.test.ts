@@ -79,6 +79,7 @@ const ruleConfig: RuleConfig = {
 const ruleRes: RuleResult = {
   cfg: '1.0',
   id: '003@1.0',
+  tenantId: 'DEFAULT',
   subRuleRef: '',
   prcgTm: undefined,
   reason: undefined,
