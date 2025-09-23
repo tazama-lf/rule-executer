@@ -11,7 +11,7 @@ import cluster from 'node:cluster';
 import os from 'node:os';
 import * as util from 'node:util';
 import { setTimeout } from 'node:timers/promises';
-import { additionalEnvironmentVariables, type Configuration, type RuleExecutorConfig } from './config';
+import { additionalEnvironmentVariables, type Configuration } from './config';
 import { execute } from './controllers/execute';
 
 let configuration = validateProcessorConfig(additionalEnvironmentVariables) as Configuration;
@@ -19,7 +19,7 @@ let configuration = validateProcessorConfig(additionalEnvironmentVariables) as C
 export const loggerService: LoggerService = new LoggerService(configuration);
 export let server: IStartupService;
 
-let databaseManager: DatabaseManagerInstance<RuleExecutorConfig>;
+let databaseManager: DatabaseManagerInstance<Configuration>;
 const logContext = 'startup';
 
 const runServer = async (): Promise<void> => {
