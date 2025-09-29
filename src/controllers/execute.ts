@@ -75,7 +75,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   const spanRuleConfig = apm.startSpan(`db.get.ruleconfig.${ruleRes.id}`);
   try {
     if (!ruleRes.cfg) throw new Error('Rule not found in network map');
-    const sRuleConfig = await databaseManager.getRuleConfig(ruleRes.id, ruleRes.cfg);
+    const sRuleConfig = await databaseManager.getRuleConfig(ruleRes.id, ruleRes.cfg, request.transaction.TenantId);
     spanRuleConfig?.end();
 
     ruleConfig = unwrap<RuleConfig>(sRuleConfig as RuleConfig[][]);
