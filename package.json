@@ -25,9 +25,9 @@
   "author": "Tazama.org",
   "license": "Apache-2.0",
   "dependencies": {
-    "@tazama-lf/frms-coe-lib": "6.0.0-rc.6",
+    "@tazama-lf/frms-coe-lib": "6.0.0-rc.9",
     "@tazama-lf/frms-coe-startup-lib": "3.0.0-rc.1",
-    "rule": "npm:@tazama-lf/rule-901@3.0.0-rc.0",
+    "rule": "npm:@tazama-lf/rule-901@3.0.0-rc.2",
     "dotenv": "^17.2.0",
     "node-cache": "^5.1.2",
     "tslib": "^2.8.1"
