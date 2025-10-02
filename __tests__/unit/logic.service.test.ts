@@ -83,6 +83,7 @@ const ruleRes: RuleResult = {
   subRuleRef: '',
   prcgTm: undefined,
   reason: undefined,
+  indpdntVarbl: -1,
 };
 
 const getMockRequest = () => {
