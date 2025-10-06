@@ -1,4 +1,4 @@
-name: Trigger Rule 901 and 902 Workflows
+name: Trigger Rule 901 and 902 Workflows after rule executer repo is updated
 
 on:
   push:
