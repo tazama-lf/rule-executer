@@ -54,7 +54,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     subRuleRef: '.err',
     reason: 'Unhandled rule result outcome',
     prcgTm: -1,
-    indpdntVarbl: -1,
+    indpdntVarbl: 0,
   };
 
   context = ruleRes.id;

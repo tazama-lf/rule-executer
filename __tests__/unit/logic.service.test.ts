@@ -83,7 +83,7 @@ const ruleRes: RuleResult = {
   subRuleRef: '',
   prcgTm: undefined,
   reason: undefined,
-  indpdntVarbl: -1,
+  indpdntVarbl: 0,
 };
 
 const getMockRequest = () => {
@@ -186,6 +186,7 @@ describe('Logic Service', () => {
         ...ruleRes,
         subRuleRef: '.err',
         reason: 'Rule processor configuration not retrievable',
+        indpdntVarbl: ruleRes.indpdntVarbl,
       };
 
       const expectedReq = getMockRequest();
@@ -203,6 +204,7 @@ describe('Logic Service', () => {
             id: '003@1.0',
             subRuleRef: errRuleResult.subRuleRef,
             reason: errRuleResult.reason,
+            indpdntVarbl: errRuleResult.indpdntVarbl,
           }),
         }),
       );
@@ -224,6 +226,7 @@ describe('Logic Service', () => {
         ...ruleRes,
         subRuleRef: '.err',
         reason: 'Rule not found in network map',
+        indpdntVarbl: ruleRes.indpdntVarbl,
       };
 
       const NoRuleCfg = '';
@@ -241,6 +244,7 @@ describe('Logic Service', () => {
             id: 'abcdefghijklmnop@1.99999999999',
             subRuleRef: errRuleResult.subRuleRef,
             reason: errRuleResult.reason,
+            indpdntVarbl: errRuleResult.indpdntVarbl,
           }),
         }),
       );
@@ -368,6 +372,7 @@ describe('Logic Service', () => {
           id: ruleRes.id,
           reason: ruleRes.reason,
           subRuleRef: ruleRes.subRuleRef,
+          indpdntVarbl: 3,
         }),
       );
     });
@@ -417,6 +422,7 @@ describe('Logic Service', () => {
           id: ruleRes.id,
           reason: 'Rule processor configuration invalid',
           subRuleRef: ruleRes.subRuleRef,
+          indpdntVarbl: 3,
         }),
       );
     });
