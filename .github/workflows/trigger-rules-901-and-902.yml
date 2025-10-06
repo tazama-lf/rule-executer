@@ -1,4 +1,4 @@
-name: Trigger Rule 901 Workflow
+name: Trigger Rule 901 and 902 Workflows
 
 on:
   push:
@@ -14,3 +14,9 @@ jobs:
           token: ${{ secrets.GH_TOKEN_LIB }}  # PAT with repo scope
           repository: tazama-lf/rule-901
           event-type: rule-executer-update  # Custom event type
+      - name: Dispatch to Rule 902
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GH_TOKEN_LIB }} # Same PAT
+          repository: tazama-lf/rule-902
+          event-type: rule-executer-update # Same event type
