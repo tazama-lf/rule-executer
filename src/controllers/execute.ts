@@ -47,10 +47,12 @@ export const execute = async (reqObj: unknown): Promise<void> => {
 
   let ruleRes: RuleResult = {
     id: `${configuration.RULE_NAME}@${configuration.RULE_VERSION}`,
+    tenantId: request.transaction.TenantId,
     cfg: '',
     subRuleRef: '.err',
     reason: 'Unhandled rule result outcome',
     prcgTm: -1,
+    indpdntVarbl: 0,
   };
 
   context = ruleRes.id;
@@ -72,7 +74,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   const spanRuleConfig = apm.startSpan(`db.get.ruleconfig.${ruleRes.id}`);
   try {
     if (!ruleRes.cfg) throw new Error('Rule not found in network map');
-    ruleConfig = await databaseManager.getRuleConfig(ruleRes.id, ruleRes.cfg);
+    ruleConfig = await databaseManager.getRuleConfig(ruleRes.id, ruleRes.cfg, request.transaction.TenantId);
     spanRuleConfig?.end();
     if (!ruleConfig?.config) {
       throw new Error('Rule processor configuration not retrievable');
@@ -99,6 +101,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   const span = apm.startSpan(`rule.${ruleRes.id}.findResult`);
   try {
     loggerService.trace('Execute rule logic', context);
+
     ruleRes = await handleTransaction(request, determineOutcome, ruleRes, loggerService, ruleConfig, databaseManager);
 
     span?.end();

@@ -27,7 +27,8 @@ jest.mock('@tazama-lf/frms-coe-startup-lib/lib/interfaces/iStartupConfig', () =>
 }));
 
 const ruleConfig: RuleConfig = {
-  id: '001@1.1.0',
+  id: 'DEFAULT-001@1.1.0',
+  tenantId: 'DEFAULT',
   desc: 'Test Rule',
   cfg: '1.0.0',
   config: {
@@ -48,7 +49,15 @@ const ruleConfig: RuleConfig = {
   },
 };
 
-const ruleRes: RuleResult = { cfg: '1.0', id: '003@1.0', subRuleRef: '', prcgTm: undefined, reason: undefined };
+const ruleRes: RuleResult = {
+  cfg: '1.0',
+  id: '003@1.0',
+  tenantId: 'DEFAULT',
+  subRuleRef: '',
+  prcgTm: undefined,
+  reason: undefined,
+  indpdntVarbl: 0,
+};
 
 const getMockRequest = () => {
   const quote: RuleRequest = {
@@ -138,7 +147,12 @@ describe('Logic Service', () => {
         return (await Promise.resolve(rc)) as unknown as RuleConfig;
       });
 
-      const errRuleResult: RuleResult = { ...ruleRes, subRuleRef: '.err', reason: 'Rule processor configuration not retrievable' };
+      const errRuleResult: RuleResult = {
+        ...ruleRes,
+        subRuleRef: '.err',
+        reason: 'Rule processor configuration not retrievable',
+        indpdntVarbl: ruleRes.indpdntVarbl,
+      };
 
       const expectedReq = getMockRequest();
 
@@ -155,6 +169,7 @@ describe('Logic Service', () => {
             id: '003@1.0',
             subRuleRef: errRuleResult.subRuleRef,
             reason: errRuleResult.reason,
+            indpdntVarbl: errRuleResult.indpdntVarbl,
           }),
         }),
       );
@@ -169,7 +184,12 @@ describe('Logic Service', () => {
         return await Promise.resolve(rc);
       });
 
-      const errRuleResult: RuleResult = { ...ruleRes, subRuleRef: '.err', reason: 'Rule not found in network map' };
+      const errRuleResult: RuleResult = {
+        ...ruleRes,
+        subRuleRef: '.err',
+        reason: 'Rule not found in network map',
+        indpdntVarbl: ruleRes.indpdntVarbl,
+      };
 
       const NoRuleCfg = '';
 
@@ -186,6 +206,7 @@ describe('Logic Service', () => {
             id: 'abcdefghijklmnop@1.99999999999',
             subRuleRef: errRuleResult.subRuleRef,
             reason: errRuleResult.reason,
+            indpdntVarbl: errRuleResult.indpdntVarbl,
           }),
         }),
       );
@@ -271,6 +292,7 @@ describe('Logic Service', () => {
 
       const localRuleConfig: RuleConfig = {
         id: '003@1.0.0',
+        tenantId: 'DEFAULT',
         desc: 'Test Rule',
         cfg: '1.0.0',
         config: {
@@ -284,7 +306,13 @@ describe('Logic Service', () => {
       const result = determineOutcome(value, localRuleConfig, ruleRes);
 
       expect(result).toEqual(
-        expect.objectContaining({ cfg: ruleRes.cfg, id: ruleRes.id, reason: ruleRes.reason, subRuleRef: ruleRes.subRuleRef }),
+        expect.objectContaining({
+          cfg: ruleRes.cfg,
+          id: ruleRes.id,
+          reason: ruleRes.reason,
+          subRuleRef: ruleRes.subRuleRef,
+          indpdntVarbl: 3,
+        }),
       );
     });
 
@@ -293,6 +321,7 @@ describe('Logic Service', () => {
 
       const localRuleConfig: RuleConfig = {
         id: '003@1.0.0',
+        tenantId: 'DEFAULT',
         desc: 'Test Rule',
         cfg: '1.0.0',
         config: {
@@ -318,6 +347,7 @@ describe('Logic Service', () => {
           id: ruleRes.id,
           reason: 'Rule processor configuration invalid',
           subRuleRef: ruleRes.subRuleRef,
+          indpdntVarbl: 3,
         }),
       );
     });
@@ -326,6 +356,7 @@ describe('Logic Service', () => {
 
       const localRuleConfig: RuleConfig = {
         id: '003@1.0.0',
+        tenantId: 'DEFAULT',
         desc: 'Test Rule',
         cfg: '1.0.0',
         config: {
