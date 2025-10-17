@@ -26,7 +26,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@tazama-lf/frms-coe-lib": "6.0.0-postgres.alpha.11",
-    "@tazama-lf/frms-coe-startup-lib": "2.4.1",
+    "@tazama-lf/frms-coe-startup-lib": "3.0.0-rc.6",
     "dotenv": "^17.2.1",
     "node-cache": "^5.1.2",
     "rule": "npm:@tazama-lf/rule-901@3.0.0-rc.6",
