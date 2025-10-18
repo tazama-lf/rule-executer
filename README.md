@@ -7,7 +7,7 @@ Generic rule executer receives a message from the Event-Director and determines 
 
 ### Services
 
-- [ArangoDB](https://arangodb.com/): Database Management
+- [PostgresQL](https://www.postgresql.org/): Database Management
 - [NATS](https://nats.io): Message queue
 - [Redis](https://redis.io): Redis
 
@@ -16,7 +16,7 @@ You also need NodeJS to be installed in your system. The current [LTS](https://n
 #### Setting Up
 
 ```sh
-git clone https://github.com/frmscoe/rule-executer
+git clone https://github.com/tazama-lf/rule-executer
 cd rule-executer
 ```
 You then need to configure your environment: a [sample](.env.template) configuration file has been provided and you may adapt that to your environment. Copy it to `.env` and modify as needed:
@@ -24,7 +24,7 @@ You then need to configure your environment: a [sample](.env.template) configura
 ```sh
 cp .env.template .env
 ```
-A [registry](https://github.com/frmscoe/docs/blob/dev/Technical/processor-startup-config-registry.md) of environment variables is provided to provide more context for what each variable is used for.
+A [registry](https://github.com/tazama-lf/docs/blob/f292c9ddabf52d6fe62addc1c61957419ed4ad05/Technical/processor-startup-config-registry.md) of environment variables is provided to provide more context for what each variable is used for.
 
 #### Build and Start
 
@@ -81,7 +81,7 @@ graph TD;
 
 ## Outputs
 
-The output is the input with an added [RuleResult](https://github.com/frmscoe/frms-coe-lib/blob/dev/src/interfaces/rule/RuleResult.ts):
+The output is the input with an added [RuleResult](https://github.com/tazama-lf/frms-coe-lib/blob/dev/src/interfaces/rule/RuleResult.ts):
 
 ```js
 {
@@ -91,18 +91,18 @@ The output is the input with an added [RuleResult](https://github.com/frmscoe/fr
   DataCache: { /* cached data relevant to the transaction */ },
   ruleResult: { /* rule result */ }
 };
-```
+```Z
 
 ## publishing your rule as a library
 Make sure you have a index.ts in the root of your rule that is exporting your `handleTransaction` method:
 `export { handleTransaction }`
 
-Ensure the "name" property in your package.json starts with your organization name, eg: `"name": "@frmscoe/rule-901",`
+Ensure the "name" property in your package.json starts with your organization name, eg: `"name": "@tazama-lf/rule-901",`
 
 Ensure the Package.json has the following:
 ```json
   "publishConfig": {
-    "@frmscoe:registry": "https://npm.pkg.github.com/"
+    "@tazama-lf:registry": "https://npm.pkg.github.com/"
   },
 ```
 
@@ -113,7 +113,7 @@ To test a rule in the executer will be a two-step process. Firstly, pack your ru
 Followed by 
 `npm pack` to create a tarball with the library artifacts. This will make a file with the extension `.tgz` containing the package version in the name
 2. From Rule Executer run (`rule-xxx` needs to be the name as specified in the above rule's package.json). An example:
-`npm i rule@file:../rule-901/frmscoe-rule-901-1.2.0.tgz`
+`npm i rule@file:../rule-901/tazama-lf-rule-901-1.2.0.tgz`
 
 Now you can run your rule engine and it will call the `handleTransaction` method from your desired Rule Processor. You'll be able to step into the method call while debugging.
 
@@ -122,7 +122,7 @@ The Jenkins job will have to call a packaged library. So the `rule` in the packa
 1. Firstly remove the current `rule` reference:
 `npm uninstall rule`
 2. Then install the expected release version of the `rule-processor` lib:
-`npm i rule@npm:@frmscoe/rule-901@latest`
+`npm i rule@npm:@tazama-lf/rule-901@latest`
 
 Furthermore, from Jenkins we'll also need to modify the rule-executer-deploy.yml file, to give the processor the correct name, as well as make sure it points to your library (note the above install / uninstall SED functions also in below script):
 
@@ -133,7 +133,7 @@ sh 'sed -i \'s/RULE_NAME="901"/RULE_NAME="901"/g\' Dockerfile'
 
 withNPM(npmrcConfig: 'guid') {
   // Modify below line to give the correct library for your Rule (eg, change rule-901 to whatever your rule package is called):
-  sh 'sed -i \'s/RUN npm install/COPY .npmrc .npmrc\\nRUN npm uninstall rule\\nRUN npm i rule@npm:@frmscoe\\/rule-901@latest\\nRUN npm install/g\' Dockerfile'
+  sh 'sed -i \'s/RUN npm install/COPY .npmrc .npmrc\\nRUN npm uninstall rule\\nRUN npm i rule@npm:@tazama-lf\\/rule-901@latest\\nRUN npm install/g\' Dockerfile'
 }
 ```
 
