@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 import apm from '../apm';
+import Ajv from 'ajv';
 import type { RuleConfig, RuleRequest, RuleResult } from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import type { MetaData } from '@tazama-lf/frms-coe-lib/lib/interfaces/metaData';
 import * as util from 'node:util';
-import { handleTransaction } from 'rule/lib';
+import { handleTransaction, getRuleConfigSchema } from 'rule/lib';
 import { databaseManager, loggerService, server } from '..';
 import { configuration } from '../';
 import determineOutcome from '../helpers/determineOutcome';
@@ -73,11 +74,41 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   let ruleConfig: RuleConfig | undefined;
   const spanRuleConfig = apm.startSpan(`db.get.ruleconfig.${ruleRes.id}`);
   try {
-    if (!ruleRes.cfg) throw new Error('Rule not found in network map');
+    if (!ruleRes.cfg) throw new Error('Rule configuration version not found in network map');
     ruleConfig = await databaseManager.getRuleConfig(ruleRes.id, ruleRes.cfg, request.transaction.TenantId);
     spanRuleConfig?.end();
     if (!ruleConfig?.config) {
       throw new Error('Rule processor configuration not retrievable');
+    }
+
+    if (typeof getRuleConfigSchema === 'function') {
+      try {
+        const schema = getRuleConfigSchema();
+        const ajv = new Ajv();
+        const validate = ajv.compile(schema); // Only catch compilation errors
+
+        const isValid = validate(ruleConfig); // Don't catch validation failures
+        if (!isValid) {
+          throw new Error(`Rule configuration validation failed: ${ajv.errorsText(validate.errors)}`);
+        }
+        loggerService.log('Rule configuration schema validation passed', context, configuration.functionName);
+      } catch (schemaError) {
+        // Only catch if it's a schema compilation error, not validation failure
+        if ((schemaError as Error).message.includes('Rule configuration validation failed')) {
+          throw schemaError; // Re-throw validation failures
+        }
+        loggerService.log(
+          `Schema validation skipped - invalid schema: ${(schemaError as Error).message}`,
+          context,
+          configuration.functionName,
+        );
+      }
+    } else {
+      loggerService.log(
+        'Schema validation skipped - getRuleConfigSchema not available in rule package',
+        context,
+        configuration.functionName,
+      );
     }
   } catch (error) {
     spanRuleConfig?.end();

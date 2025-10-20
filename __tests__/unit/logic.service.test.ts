@@ -64,6 +64,7 @@ const getMockRequest = () => {
     transaction: Object.assign({}, Pacs002Sample),
     networkMap: NetworkMapSample[0],
     DataCache: Object.assign({}, DataCacheSample),
+    metaData: { prcgTmDp: 999, prcgTmED: 999, traceParent: 'some-initial-trace' },
   };
   return quote;
 };
@@ -93,6 +94,7 @@ describe('Logic Service', () => {
   });
 
   describe('execute', () => {
+    jest.spyOn(require('rule/lib'), 'getRuleConfigSchema').mockImplementation(() => undefined);
     it('should respond with rule result of true for happy path ', async () => {
       jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig> => {
         const rc: RuleConfig = { ...ruleConfig };
@@ -100,12 +102,13 @@ describe('Logic Service', () => {
       });
 
       const expectedReq = getMockRequest();
+      expectedReq.metaData = { prcgTmDp: 999, prcgTmED: 999, traceParent: 'some-initial-trace' };
 
       responseSpy = jest.spyOn(server, 'handleResponse').mockImplementationOnce(jest.fn());
 
       await execute(expectedReq);
 
-      expect(responseSpy).toHaveBeenCalledWith({ ...expectedReq, metaData: undefined, ruleResult: ruleRes });
+      expect(responseSpy).toHaveBeenCalledWith({ ...expectedReq, metaData: expect.any(Object), ruleResult: ruleRes });
     });
 
     it('should respond with rule result - ruleConfig - exitConditions are undefined ', async () => {
@@ -120,7 +123,7 @@ describe('Logic Service', () => {
 
       await execute(expectedReq);
 
-      expect(responseSpy).toHaveBeenCalledWith({ ...expectedReq, metaData: undefined, ruleResult: ruleRes });
+      expect(responseSpy).toHaveBeenCalledWith({ ...expectedReq, metaData: expect.any(Object), ruleResult: ruleRes });
     });
 
     it('should respond with rule result - ruleConfig - bands are undefined ', async () => {
@@ -135,7 +138,7 @@ describe('Logic Service', () => {
 
       await execute(expectedReq);
 
-      expect(responseSpy).toHaveBeenCalledWith({ ...expectedReq, metaData: undefined, ruleResult: ruleRes });
+      expect(responseSpy).toHaveBeenCalledWith({ ...expectedReq, metaData: expect.any(Object), ruleResult: ruleRes });
     });
 
     it('should respond with rule result .err - ruleConfig: config is undefined ', async () => {
@@ -187,7 +190,7 @@ describe('Logic Service', () => {
       const errRuleResult: RuleResult = {
         ...ruleRes,
         subRuleRef: '.err',
-        reason: 'Rule not found in network map',
+        reason: 'Rule configuration version not found in network map',
         indpdntVarbl: ruleRes.indpdntVarbl,
       };
 
@@ -283,6 +286,38 @@ describe('Logic Service', () => {
       await execute(expectedReq);
 
       expect(responseSpy).toThrow();
+    });
+  });
+
+  describe('database errors', () => {
+    it('should respond with rule result .err - database connection error', async () => {
+      jest.spyOn(databaseManager, 'getRuleConfig').mockRejectedValueOnce(new Error('Database connection timeout'));
+
+      const errRuleResult: RuleResult = {
+        ...ruleRes,
+        subRuleRef: '.err',
+        reason: 'Database connection timeout',
+        indpdntVarbl: 0,
+      };
+
+      const expectedReq = getMockRequest();
+      responseSpy = jest.spyOn(server, 'handleResponse').mockImplementationOnce(jest.fn());
+
+      await execute(expectedReq);
+
+      expect(responseSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transaction: expectedReq.transaction,
+          networkMap: expectedReq.networkMap,
+          ruleResult: expect.objectContaining({
+            cfg: '1.0',
+            id: '003@1.0',
+            subRuleRef: errRuleResult.subRuleRef,
+            reason: errRuleResult.reason,
+            indpdntVarbl: errRuleResult.indpdntVarbl,
+          }),
+        }),
+      );
     });
   });
 

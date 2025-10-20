@@ -15,7 +15,8 @@
     "resolveJsonModule": true /* Include modules imported with '.json' extension */,
     "skipLibCheck": true /* Skip type checking of declaration files. */,
     "moduleResolution": "nodenext",
-    "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
+    "forceConsistentCasingInFileNames": true, /* Disallow inconsistently-cased references to the same file. */
+    "isolatedModules": true /* Allow hybrid module kind (Node16/18/Next) */
   },
   "include": ["./src/**/*"],
   "exclude": [
