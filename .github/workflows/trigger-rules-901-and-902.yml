@@ -1,0 +1,22 @@
+name: Trigger Rule 901 and 902 Workflows after rule executer repo is updated
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch to Rule 901
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GH_TOKEN_LIB }}  # PAT with repo scope
+          repository: tazama-lf/rule-901
+          event-type: rule-executer-update  # Custom event type
+      - name: Dispatch to Rule 902
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.GH_TOKEN_LIB }} # Same PAT
+          repository: tazama-lf/rule-902
+          event-type: rule-executer-update # Same event type

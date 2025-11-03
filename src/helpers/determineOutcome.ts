@@ -3,6 +3,7 @@ import type { RuleConfig, RuleResult } from '@tazama-lf/frms-coe-lib/lib/interfa
 import { loggerService } from '..';
 
 const determineOutcome = (value: number, ruleConfig: RuleConfig, ruleResult: RuleResult): RuleResult => {
+  ruleResult.indpdntVarbl = value;
   if (ruleConfig.config.bands && ruleConfig.config.cases) {
     const reason = 'Rule processor configuration invalid';
     loggerService.error(reason);

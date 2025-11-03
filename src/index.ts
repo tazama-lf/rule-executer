@@ -55,7 +55,7 @@ const numCPUs = os.cpus().length > configuration.maxCPU ? configuration.maxCPU +
 export const initializeDB = async (): Promise<void> => {
   const auth = configuration.nodeEnv === 'production';
   const { config, db } = await CreateStorageManager<Configuration>(
-    [Database.CONFIGURATION, Database.PSEUDONYMS, Database.TRANSACTION_HISTORY, Cache.LOCAL],
+    [Database.CONFIGURATION, Database.EVENT_HISTORY, Database.RAW_HISTORY, Cache.LOCAL],
     auth,
   );
   databaseManager = db;
@@ -89,7 +89,7 @@ if (cluster.isPrimary && configuration.maxCPU !== 1) {
       try {
         await initializeDB();
         await runServer();
-      } catch (err: unknown) {
+      } catch (err) {
         loggerService.error('Error while starting services', util.inspect(err), logContext, configuration.functionName);
         process.exit(1);
       }

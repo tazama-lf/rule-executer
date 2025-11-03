@@ -7,20 +7,13 @@ import { execute } from '../../src/controllers/execute';
 import determineOutcome from '../../src/helpers/determineOutcome';
 
 jest.mock('@tazama-lf/frms-coe-lib/lib/services/dbManager', () => ({
-  CreateStorageManager: jest.fn().mockReturnValue({
-    db: {
-      getRuleConfig: jest.fn(),
-      isReadyCheck: jest.fn().mockReturnValue({ nodeEnv: 'test' }),
-    },
-  }),
+  CreateStorageManager: jest
+    .fn()
+    .mockReturnValue({ db: { getRuleConfig: jest.fn(), isReadyCheck: jest.fn().mockReturnValue({ nodeEnv: 'test' }) } }),
 }));
 
 jest.mock('@tazama-lf/frms-coe-lib/lib/config/processor.config', () => ({
-  validateProcessorConfig: jest.fn().mockReturnValue({
-    functionName: 'test-rule-executor',
-    nodeEnv: 'test',
-    maxCPU: 1,
-  }),
+  validateProcessorConfig: jest.fn().mockReturnValue({ functionName: 'test-rule-executor', nodeEnv: 'test', maxCPU: 1 }),
 }));
 
 jest.mock('@tazama-lf/frms-coe-startup-lib/lib/interfaces/iStartupConfig', () => ({
@@ -34,59 +27,42 @@ jest.mock('@tazama-lf/frms-coe-startup-lib/lib/interfaces/iStartupConfig', () =>
 }));
 
 const ruleConfig: RuleConfig = {
-  id: '001@1.1.0',
+  id: 'DEFAULT-001@1.1.0',
+  tenantId: 'DEFAULT',
   desc: 'Test Rule',
   cfg: '1.0.0',
   config: {
-    parameters: {
-      testParam: 'testParamValue',
-    },
-    exitConditions: [
-      {
-        subRuleRef: '.x01',
-        reason: 'Exit Example x01',
-      },
-    ],
+    parameters: { testParam: 'testParamValue' },
+    exitConditions: [{ subRuleRef: '.x01', reason: 'Exit Example x01' }],
     bands: [
-      {
-        subRuleRef: '.01',
-        upperLimit: 1,
-        reason: 'Band Example 01',
-      },
-      {
-        subRuleRef: '.02',
-        lowerLimit: 1,
-        upperLimit: 2,
-        reason: 'Band Example 02',
-      },
+      { subRuleRef: '.01', upperLimit: 1, reason: 'Band Example 01' },
+      { subRuleRef: '.02', lowerLimit: 1, upperLimit: 2, reason: 'Band Example 02' },
     ],
-    cases: [
-      {
-        reason: 'testCaseReason',
+    cases: {
+      expressions: [],
+      alternative: {
         subRuleRef: 'case01',
-        value: '0',
+        reason: 'testCaseReason',
       },
-    ],
-    timeframes: [
-      {
-        threshold: 0,
-      },
-    ],
+    },
+    timeframes: [{ threshold: 0 }],
   },
 };
 
 const ruleRes: RuleResult = {
   cfg: '1.0',
   id: '003@1.0',
+  tenantId: 'DEFAULT',
   subRuleRef: '',
   prcgTm: undefined,
   reason: undefined,
+  indpdntVarbl: 0,
 };
 
 const getMockRequest = () => {
   const quote: RuleRequest = {
     transaction: Object.assign({}, Pacs002Sample),
-    networkMap: Object.assign(new NetworkMap(), NetworkMapSample[0][0]),
+    networkMap: NetworkMapSample[0],
     DataCache: Object.assign({}, DataCacheSample),
   };
   return quote;
@@ -118,11 +94,9 @@ describe('Logic Service', () => {
 
   describe('execute', () => {
     it('should respond with rule result of true for happy path ', async () => {
-      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        const rc: RuleConfig = {
-          ...ruleConfig,
-        };
-        return await Promise.resolve([[rc]]);
+      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig> => {
+        const rc: RuleConfig = { ...ruleConfig };
+        return await Promise.resolve(rc);
       });
 
       const expectedReq = getMockRequest();
@@ -135,12 +109,9 @@ describe('Logic Service', () => {
     });
 
     it('should respond with rule result - ruleConfig - exitConditions are undefined ', async () => {
-      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        const rc: RuleConfig = {
-          ...ruleConfig,
-          config: { exitConditions: undefined },
-        };
-        return await Promise.resolve([[rc]]);
+      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig> => {
+        const rc: RuleConfig = { ...ruleConfig, config: { exitConditions: undefined } };
+        return await Promise.resolve(rc);
       });
 
       const expectedReq = getMockRequest();
@@ -153,12 +124,9 @@ describe('Logic Service', () => {
     });
 
     it('should respond with rule result - ruleConfig - bands are undefined ', async () => {
-      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        const rc: RuleConfig = {
-          ...ruleConfig,
-          config: { bands: undefined },
-        };
-        return await Promise.resolve([[rc]]);
+      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig> => {
+        const rc: RuleConfig = { ...ruleConfig, config: { bands: undefined } };
+        return await Promise.resolve(rc);
       });
 
       const expectedReq = getMockRequest();
@@ -171,18 +139,19 @@ describe('Logic Service', () => {
     });
 
     it('should respond with rule result .err - ruleConfig: config is undefined ', async () => {
-      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<unknown[][]> => {
-        const rc: unknown = {
+      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig> => {
+        const rc = {
           ...ruleConfig,
           config: undefined,
         };
-        return await Promise.resolve([[rc]]);
+        return (await Promise.resolve(rc)) as unknown as RuleConfig;
       });
 
       const errRuleResult: RuleResult = {
         ...ruleRes,
         subRuleRef: '.err',
         reason: 'Rule processor configuration not retrievable',
+        indpdntVarbl: ruleRes.indpdntVarbl,
       };
 
       const expectedReq = getMockRequest();
@@ -200,6 +169,7 @@ describe('Logic Service', () => {
             id: '003@1.0',
             subRuleRef: errRuleResult.subRuleRef,
             reason: errRuleResult.reason,
+            indpdntVarbl: errRuleResult.indpdntVarbl,
           }),
         }),
       );
@@ -209,18 +179,16 @@ describe('Logic Service', () => {
       configuration.RULE_NAME = 'abcdefghijklmnop';
       configuration.RULE_VERSION = '1.99999999999';
 
-      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        const rc: RuleConfig = {
-          ...ruleConfig,
-          config: { bands: undefined },
-        };
-        return await Promise.resolve([[rc]]);
+      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig> => {
+        const rc: RuleConfig = { ...ruleConfig, config: { bands: undefined } };
+        return await Promise.resolve(rc);
       });
 
       const errRuleResult: RuleResult = {
         ...ruleRes,
         subRuleRef: '.err',
         reason: 'Rule not found in network map',
+        indpdntVarbl: ruleRes.indpdntVarbl,
       };
 
       const NoRuleCfg = '';
@@ -238,6 +206,7 @@ describe('Logic Service', () => {
             id: 'abcdefghijklmnop@1.99999999999',
             subRuleRef: errRuleResult.subRuleRef,
             reason: errRuleResult.reason,
+            indpdntVarbl: errRuleResult.indpdntVarbl,
           }),
         }),
       );
@@ -275,11 +244,9 @@ describe('Logic Service', () => {
     });
 
     it('should respond with rule result - handleTransaction fail ', async () => {
-      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        const rc: RuleConfig = {
-          ...ruleConfig,
-        };
-        return await Promise.resolve([[rc]]);
+      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig> => {
+        const rc: RuleConfig = { ...ruleConfig };
+        return await Promise.resolve(rc);
       });
 
       const handleTransactionErrMsg = 'BAD';
@@ -296,21 +263,14 @@ describe('Logic Service', () => {
       await execute(expectedReq);
 
       expect(responseSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          ruleResult: expect.objectContaining({
-            subRuleRef: '.err',
-            reason: handleTransactionErrMsg,
-          }),
-        }),
+        expect.objectContaining({ ruleResult: expect.objectContaining({ subRuleRef: '.err', reason: handleTransactionErrMsg }) }),
       );
     });
 
     it('should fail on bad handleResponse', async () => {
-      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig[][]> => {
-        const rc: RuleConfig = {
-          ...ruleConfig,
-        };
-        return await Promise.resolve([[rc]]);
+      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig> => {
+        const rc: RuleConfig = { ...ruleConfig };
+        return await Promise.resolve(rc);
       });
 
       const expectedReq = getMockRequest();
@@ -332,27 +292,14 @@ describe('Logic Service', () => {
 
       const localRuleConfig: RuleConfig = {
         id: '003@1.0.0',
+        tenantId: 'DEFAULT',
         desc: 'Test Rule',
         cfg: '1.0.0',
         config: {
-          exitConditions: [
-            {
-              subRuleRef: '.x01',
-              reason: 'Exit Example x01',
-            },
-          ],
+          exitConditions: [{ subRuleRef: '.x01', reason: 'Exit Example x01' }],
           bands: [
-            {
-              subRuleRef: '.01',
-              upperLimit: 1,
-              reason: 'Band Example 01',
-            },
-            {
-              subRuleRef: '.02',
-              lowerLimit: 2,
-              upperLimit: 5,
-              reason: 'Band Example 02',
-            },
+            { subRuleRef: '.01', upperLimit: 1, reason: 'Band Example 01' },
+            { subRuleRef: '.02', lowerLimit: 2, upperLimit: 5, reason: 'Band Example 02' },
           ],
         },
       };
@@ -364,6 +311,7 @@ describe('Logic Service', () => {
           id: ruleRes.id,
           reason: ruleRes.reason,
           subRuleRef: ruleRes.subRuleRef,
+          indpdntVarbl: 3,
         }),
       );
     });
@@ -373,35 +321,22 @@ describe('Logic Service', () => {
 
       const localRuleConfig: RuleConfig = {
         id: '003@1.0.0',
+        tenantId: 'DEFAULT',
         desc: 'Test Rule',
         cfg: '1.0.0',
         config: {
-          exitConditions: [
-            {
-              subRuleRef: '.x01',
-              reason: 'Exit Example x01',
-            },
-          ],
+          exitConditions: [{ subRuleRef: '.x01', reason: 'Exit Example x01' }],
           bands: [
-            {
-              subRuleRef: '.01',
-              upperLimit: 1,
-              reason: 'Band Example 01',
-            },
-            {
-              subRuleRef: '.02',
-              lowerLimit: 1,
-              upperLimit: 2,
-              reason: 'Band Example 02',
-            },
+            { subRuleRef: '.01', upperLimit: 1, reason: 'Band Example 01' },
+            { subRuleRef: '.02', lowerLimit: 1, upperLimit: 2, reason: 'Band Example 02' },
           ],
-          cases: [
-            {
-              reason: 'testCaseReason',
+          cases: {
+            expressions: [],
+            alternative: {
               subRuleRef: 'case01',
-              value: '0',
+              reason: 'testCaseReason',
             },
-          ],
+          },
         },
       };
       const result = determineOutcome(value, localRuleConfig, ruleRes);
@@ -412,6 +347,7 @@ describe('Logic Service', () => {
           id: ruleRes.id,
           reason: 'Rule processor configuration invalid',
           subRuleRef: ruleRes.subRuleRef,
+          indpdntVarbl: 3,
         }),
       );
     });
@@ -420,27 +356,14 @@ describe('Logic Service', () => {
 
       const localRuleConfig: RuleConfig = {
         id: '003@1.0.0',
+        tenantId: 'DEFAULT',
         desc: 'Test Rule',
         cfg: '1.0.0',
         config: {
-          exitConditions: [
-            {
-              subRuleRef: '.x01',
-              reason: 'Exit Example x01',
-            },
-          ],
+          exitConditions: [{ subRuleRef: '.x01', reason: 'Exit Example x01' }],
           bands: [
-            {
-              subRuleRef: '.01',
-              upperLimit: 1,
-              reason: 'Band Example 01',
-            },
-            {
-              subRuleRef: '.02',
-              lowerLimit: 1,
-              upperLimit: 2,
-              reason: 'Band Example 02',
-            },
+            { subRuleRef: '.01', upperLimit: 1, reason: 'Band Example 01' },
+            { subRuleRef: '.02', lowerLimit: 1, upperLimit: 2, reason: 'Band Example 02' },
           ],
         },
       };
