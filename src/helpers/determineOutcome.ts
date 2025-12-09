@@ -3,7 +3,8 @@ import type { RuleConfig, RuleResult } from '@tazama-lf/frms-coe-lib/lib/interfa
 import { loggerService } from '..';
 
 const determineOutcome = (value: number, ruleConfig: RuleConfig, ruleResult: RuleResult): RuleResult => {
-  ruleResult.indpdntVarbl = value;
+  const res = ruleResult;
+  res.indpdntVarbl = value;
   if (ruleConfig.config.bands && ruleConfig.config.cases) {
     const reason = 'Rule processor configuration invalid';
     loggerService.error(reason);
@@ -17,15 +18,15 @@ const determineOutcome = (value: number, ruleConfig: RuleConfig, ruleResult: Rul
   if (bands && (value || value === 0)) {
     for (const band of bands) {
       if ((!band.lowerLimit || value >= band.lowerLimit) && (!band.upperLimit || value < band.upperLimit)) {
-        ruleResult.subRuleRef = band.subRuleRef;
-        ruleResult.reason = band.reason;
+        res.subRuleRef = band.subRuleRef;
+        res.reason = band.reason;
         break;
       }
     }
   } else {
     throw new Error('Value provided undefined, so cannot determine rule outcome');
   }
-  return ruleResult;
+  return res;
 };
 
 export default determineOutcome;

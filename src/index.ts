@@ -26,24 +26,26 @@ const runServer = async (): Promise<void> => {
   server = new StartupFactory();
   if (configuration.nodeEnv !== 'test') {
     let isConnected = false;
-    for (let retryCount = 0; retryCount < 10; retryCount++) {
+    /* eslint-disable no-await-in-loop -- retry logic */
+    for (let retryCount = 0; retryCount < 10; retryCount += 1) {
       loggerService.log('Connecting to nats server...', logContext, configuration.functionName);
       if (
-        !(await server.init(
+        await server.init(
           execute,
           loggerService,
           [`sub-rule-${configuration.RULE_NAME}@${configuration.RULE_VERSION}`],
           `pub-rule-${configuration.RULE_NAME}@${configuration.RULE_VERSION}`,
-        ))
+        )
       ) {
-        loggerService.warn(`Unable to connect, retry count: ${retryCount}`, logContext, configuration.functionName);
-        await setTimeout(5000);
-      } else {
         loggerService.log('Connected to nats', logContext, configuration.functionName);
         isConnected = true;
         break;
+      } else {
+        loggerService.warn(`Unable to connect, retry count: ${retryCount}`, logContext, configuration.functionName);
+        await setTimeout(5000);
       }
     }
+    /* eslint-enable no-await-in-loop */
 
     if (!isConnected) {
       throw new Error('Unable to connect to nats after 10 retries');
@@ -75,7 +77,7 @@ if (cluster.isPrimary && configuration.maxCPU !== 1) {
   loggerService.log(`Primary ${process.pid} is running`);
 
   // Fork workers.
-  for (let i = 1; i < numCPUs; i++) {
+  for (let i = 1; i < numCPUs; i += 1) {
     cluster.fork();
   }
 
@@ -83,18 +85,16 @@ if (cluster.isPrimary && configuration.maxCPU !== 1) {
     loggerService.log(`worker ${Number(worker.process.pid)} died, starting another worker`);
     cluster.fork();
   });
-} else {
-  if (process.env.NODE_ENV !== 'test') {
-    (async () => {
-      try {
-        await initializeDB();
-        await runServer();
-      } catch (err) {
-        loggerService.error('Error while starting services', util.inspect(err), logContext, configuration.functionName);
-        process.exit(1);
-      }
-    })();
-  }
+} else if (process.env.NODE_ENV !== 'test') {
+  (async () => {
+    try {
+      await initializeDB();
+      await runServer();
+    } catch (err) {
+      loggerService.error('Error while starting services', util.inspect(err), logContext, configuration.functionName);
+      process.exit(1);
+    }
+  })();
 }
 
 export { configuration, databaseManager, runServer };
