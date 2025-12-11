@@ -9,7 +9,7 @@ const determineOutcome = (value: number, ruleConfig: RuleConfig, ruleResult: Rul
     const reason = 'Rule processor configuration invalid';
     loggerService.error(reason);
     return {
-      ...ruleResult,
+      ...res,
       reason,
     };
   }
