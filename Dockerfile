@@ -44,7 +44,7 @@ ENV NPM_CONFIG_LOGLEVEL warn
 
 ENV FUNCTION_NAME="rule-executer"
 ENV RULE_VERSION="2.1.0"
-ENV RULE_NAME="placeholder"
+ENV RULE_NAME="rule-901"
 ENV NODE_ENV=production
 ENV MAX_CPU=1
 
