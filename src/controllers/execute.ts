@@ -103,7 +103,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
   try {
     loggerService.trace('Execute rule logic', context);
 
-    ruleRes = await handleTransaction(request, determineOutcome, ruleRes, loggerService, ruleConfig, databaseManager);
+    ruleRes = await handleTransaction(request, determineOutcome, ruleRes, loggerService, ruleConfig, databaseManager as any);
 
     span?.end();
   } catch (error) {
