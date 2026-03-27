@@ -21,6 +21,6 @@ export interface ExtendedConfig {
 }
 
 export type RuleExecutorConfig = Required<
-  Pick<ManagerConfig, 'rawHistory' | 'eventHistory' | 'configuration' | 'localCacheConfig' | 'redisConfig'>
+  Pick<ManagerConfig, 'rawHistory' | 'eventHistory' | 'configuration' | 'localCacheConfig'>
 >;
 export type Configuration = ProcessorConfig & RuleExecutorConfig & ExtendedConfig;
