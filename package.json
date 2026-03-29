@@ -16,7 +16,7 @@
     "lint:eslint-unused": "eslint --report-unused-disable-directives",
     "lint:eslint-no-inline": "eslint --no-inline-config",
     "lint:prettier": "prettier --check \"**/*.ts\"",
-    "cleanup": "rm -rf build template jest.config.js jest.config.js.map node_modules package-lock.json",
+    "cleanup": "npx rimraf lib node_modules coverage package-lock.json",
     "prepare": "husky",
     "test": "set STARTUP_TYPE=nats&&jest --config=jest.config.ts --passWithNoTests --runInBand --detectOpenHandles --forceExit",
     "test:watch": "jest --config=jest.config.ts --watch"
@@ -25,8 +25,8 @@
   "author": "Tazama.org",
   "license": "Apache-2.0",
   "dependencies": {
-    "@tazama-lf/frms-coe-lib": "7.0.1-rc.ak.16",
-    "@tazama-lf/frms-coe-startup-lib": "3.0.0-rc.ak.13",
+    "@tazama-lf/frms-coe-lib": "7.0.1-rc.ak.17",
+    "@tazama-lf/frms-coe-startup-lib": "3.0.0-rc.ak.17",
     "dotenv": "^17.2.3",
     "node-cache": "^5.1.2",
     "ts-node": "^10.9.2",

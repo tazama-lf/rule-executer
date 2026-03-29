@@ -57,7 +57,7 @@ const numCPUs = os.cpus().length > configuration.maxCPU ? configuration.maxCPU +
 export const initializeDB = async (): Promise<void> => {
   const auth = configuration.nodeEnv === 'production';
   const { config, db } = await CreateStorageManager<Configuration>(
-    [Database.CONFIGURATION, Database.EVENT_HISTORY, Database.RAW_HISTORY, Cache.DISTRIBUTED, Cache.LOCAL],
+    [Database.CONFIGURATION, Database.EVENT_HISTORY, Database.RAW_HISTORY, Cache.LOCAL],
     auth,
   );
   databaseManager = db;

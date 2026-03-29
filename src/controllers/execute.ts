@@ -3,7 +3,7 @@ import apm from '../apm';
 import type { RuleConfig, RuleRequest, RuleResult } from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import type { MetaData } from '@tazama-lf/frms-coe-lib/lib/interfaces/metaData';
 import * as util from 'node:util';
-import { handleTransaction } from 'rule/lib';
+import { handleTransaction } from '../rule/rule';
 import { databaseManager, loggerService, server } from '..';
 import { configuration } from '../';
 import determineOutcome from '../helpers/determineOutcome';
@@ -28,6 +28,8 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     if (!('transaction' in message)) throw new Error('Missing in request: transaction');
     if (!('networkMap' in message)) throw new Error('Missing in request: networkMap');
     if (!('DataCache' in message)) throw new Error('Missing in request: DataCache');
+
+    loggerService.log(`[L32] Request transaction data: ${JSON.stringify(message.transaction)}`, context, configuration.functionName);
 
     request = {
       transaction: message.transaction,
