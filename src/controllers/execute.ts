@@ -29,6 +29,8 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     if (!('networkMap' in message)) throw new Error('Missing in request: networkMap');
     if (!('DataCache' in message)) throw new Error('Missing in request: DataCache');
 
+    loggerService.log(`[L32] Request transaction data: ${JSON.stringify(message.transaction)}`, context, configuration.functionName);
+
     request = {
       transaction: message.transaction,
       networkMap: message.networkMap,

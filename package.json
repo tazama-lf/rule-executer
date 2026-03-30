@@ -16,7 +16,7 @@
     "lint:eslint-unused": "eslint --report-unused-disable-directives",
     "lint:eslint-no-inline": "eslint --no-inline-config",
     "lint:prettier": "prettier --check \"**/*.ts\"",
-    "cleanup": "rm -rf build template jest.config.js jest.config.js.map node_modules package-lock.json",
+    "cleanup": "npx rimraf lib node_modules coverage package-lock.json",
     "prepare": "husky",
     "test": "set STARTUP_TYPE=nats&&jest --config=jest.config.ts --passWithNoTests --runInBand --detectOpenHandles --forceExit",
     "test:watch": "jest --config=jest.config.ts --watch"
