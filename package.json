@@ -25,11 +25,11 @@
   "author": "Tazama.org",
   "license": "Apache-2.0",
   "dependencies": {
-    "@tazama-lf/frms-coe-lib": "^8.0.0-rc.3",
-    "@tazama-lf/frms-coe-startup-lib": "^3.0.2-rc.5",
+    "@tazama-lf/frms-coe-lib": "8.0.0-rc.3",
+    "@tazama-lf/frms-coe-startup-lib": "3.0.2-rc.5",
     "dotenv": "^17.2.3",
     "node-cache": "^5.1.2",
-    "rule": "npm:@tazama-lf/rule-901@^4.0.0-rc.3",
+    "rule": "npm:@tazama-lf/rule-901@4.0.0-rc.3",
     "ts-node": "^10.9.2",
     "tslib": "^2.8.1"
   },
