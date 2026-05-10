@@ -5,7 +5,8 @@ import { LoggerService, type DatabaseManagerInstance } from '@tazama-lf/frms-coe
 import { Database } from '@tazama-lf/frms-coe-lib/lib/config/database.config';
 import { validateProcessorConfig } from '@tazama-lf/frms-coe-lib/lib/config/processor.config';
 import { Cache } from '@tazama-lf/frms-coe-lib/lib/config/redis.config';
-import { CreateStorageManager } from '@tazama-lf/frms-coe-lib/lib/services/dbManager';
+import { CreateStorageManager, type DatabaseManagerHooks } from '@tazama-lf/frms-coe-lib/lib/services/dbManager';
+import type { RuleConfig } from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import { StartupFactory, type IStartupService } from '@tazama-lf/frms-coe-startup-lib';
 import cluster from 'node:cluster';
 import os from 'node:os';
@@ -13,6 +14,8 @@ import * as util from 'node:util';
 import { setTimeout } from 'node:timers/promises';
 import { additionalEnvironmentVariables, type Configuration } from './config';
 import { execute } from './controllers/execute';
+import { checkRuleIdentity } from './helpers/checkRuleIdentity';
+import * as ruleModule from 'rule/lib';
 
 let configuration = validateProcessorConfig(additionalEnvironmentVariables) as Configuration;
 
@@ -56,9 +59,13 @@ const numCPUs = os.cpus().length > configuration.maxCPU ? configuration.maxCPU +
 
 export const initializeDB = async (): Promise<void> => {
   const auth = configuration.nodeEnv === 'production';
+  const validateConfig =
+    'validateConfig' in ruleModule ? (ruleModule as { validateConfig: (config: RuleConfig) => void }).validateConfig : undefined;
+  const hooks: DatabaseManagerHooks | undefined = validateConfig ? { onConfigLoaded: validateConfig } : undefined;
   const { config, db } = await CreateStorageManager<Configuration>(
     [Database.CONFIGURATION, Database.EVENT_HISTORY, Database.RAW_HISTORY, Cache.LOCAL],
     auth,
+    hooks,
   );
   databaseManager = db;
   configuration = { ...configuration, ...config };
@@ -72,6 +79,17 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (err) => {
   loggerService.error(`process on unhandledRejection error: ${util.inspect(err)}`, logContext, configuration.functionName);
 });
+
+// Verify that the installed rule module matches the expected container identity.
+// This runs once before the cluster split so the process exits immediately on mismatch.
+try {
+  checkRuleIdentity(ruleModule, configuration.RULE_NAME, (msg) => {
+    loggerService.warn(msg, logContext, configuration.functionName);
+  });
+} catch (err) {
+  loggerService.error('Rule module identity check failed - aborting startup', util.inspect(err), logContext, configuration.functionName);
+  process.exit(1);
+}
 
 if (cluster.isPrimary && configuration.maxCPU !== 1) {
   loggerService.log(`Primary ${process.pid} is running`);
