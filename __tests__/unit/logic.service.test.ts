@@ -13,7 +13,7 @@ jest.mock('@tazama-lf/frms-coe-lib/lib/services/dbManager', () => ({
 }));
 
 jest.mock('@tazama-lf/frms-coe-lib/lib/config/processor.config', () => ({
-  validateProcessorConfig: jest.fn().mockReturnValue({ functionName: 'test-rule-executor', nodeEnv: 'test', maxCPU: 1 }),
+  validateProcessorConfig: jest.fn().mockReturnValue({ functionName: 'test-rule-executor', nodeEnv: 'test', maxCPU: 1, RULE_NAME: '901' }),
 }));
 
 jest.mock('@tazama-lf/frms-coe-startup-lib/lib/interfaces/iStartupConfig', () => ({
