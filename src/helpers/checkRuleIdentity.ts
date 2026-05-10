@@ -14,16 +14,19 @@ export const checkRuleIdentity = (
   expectedRuleName: string,
   logWarn: (message: string) => void,
 ): void => {
-  const moduleRuleId = 'RULE_ID' in ruleModule ? String(ruleModule.RULE_ID) : undefined;
-
-  if (!moduleRuleId) {
+  const rawRuleId = 'RULE_ID' in ruleModule ? ruleModule.RULE_ID : undefined;
+  if (rawRuleId === undefined || rawRuleId === null || rawRuleId === '') {
     logWarn('Rule module does not export RULE_ID - identity verification skipped');
     return;
   }
+  if (typeof rawRuleId !== 'string') {
+    logWarn('Rule module RULE_ID is not a string - identity verification skipped');
+    return;
+  }
 
-  if (moduleRuleId !== expectedRuleName) {
+  if (rawRuleId !== expectedRuleName) {
     throw new Error(
-      `Rule module identity mismatch: container expects "${expectedRuleName}" but loaded module identifies as "${moduleRuleId}"`,
+      `Rule module identity mismatch: container expects "${expectedRuleName}" but loaded module identifies as "${rawRuleId}"`,
     );
   }
 };

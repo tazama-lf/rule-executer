@@ -32,11 +32,11 @@ describe('checkRuleIdentity', () => {
     expect(logWarn).not.toHaveBeenCalled();
   });
 
-  it('should coerce a non-string RULE_ID to string before comparing', () => {
-    // Defensive: if someone sets RULE_ID to a number
+  it('should warn and skip if RULE_ID is not a string', () => {
+    // Defensive: if someone sets RULE_ID to a number, treat it as missing
     const ruleModule = { RULE_ID: 901 as unknown as string };
 
     expect(() => checkRuleIdentity(ruleModule, expectedRuleName, logWarn)).not.toThrow();
-    expect(logWarn).not.toHaveBeenCalled();
+    expect(logWarn).toHaveBeenCalledWith('Rule module RULE_ID is not a string - identity verification skipped');
   });
 });

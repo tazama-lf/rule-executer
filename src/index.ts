@@ -59,8 +59,9 @@ const numCPUs = os.cpus().length > configuration.maxCPU ? configuration.maxCPU +
 
 export const initializeDB = async (): Promise<void> => {
   const auth = configuration.nodeEnv === 'production';
+  const validateConfigCandidate = (ruleModule as { validateConfig?: unknown }).validateConfig;
   const validateConfig =
-    'validateConfig' in ruleModule ? (ruleModule as { validateConfig: (config: RuleConfig) => void }).validateConfig : undefined;
+    typeof validateConfigCandidate === 'function' ? (validateConfigCandidate as (config: RuleConfig) => void) : undefined;
   const hooks: DatabaseManagerHooks | undefined = validateConfig ? { onConfigLoaded: validateConfig } : undefined;
   const { config, db } = await CreateStorageManager<Configuration>(
     [Database.CONFIGURATION, Database.EVENT_HISTORY, Database.RAW_HISTORY, Cache.LOCAL],
