@@ -11,12 +11,12 @@ jobs:
       - name: Dispatch to Rule 901
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.GH_TOKEN_LIB }}  # PAT with repo scope
+          token: ${{ secrets.GH_TOKEN }}  # needs Contents: write on the target repo to send a repository_dispatch
           repository: tazama-lf/rule-901
           event-type: rule-executer-update  # Custom event type
       - name: Dispatch to Rule 902
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.GH_TOKEN_LIB }} # Same PAT
+          token: ${{ secrets.GH_TOKEN }} # same write-capable token
           repository: tazama-lf/rule-902
           event-type: rule-executer-update # Same event type
