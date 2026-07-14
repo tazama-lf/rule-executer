@@ -13,7 +13,7 @@ jest.mock('@tazama-lf/frms-coe-lib/lib/services/dbManager', () => ({
 }));
 
 jest.mock('@tazama-lf/frms-coe-lib/lib/config/processor.config', () => ({
-  validateProcessorConfig: jest.fn().mockReturnValue({ functionName: 'test-rule-executor', nodeEnv: 'test', maxCPU: 1 }),
+  validateProcessorConfig: jest.fn().mockReturnValue({ functionName: 'test-rule-executor', nodeEnv: 'test', maxCPU: 1, RULE_NAME: '901' }),
 }));
 
 jest.mock('@tazama-lf/frms-coe-startup-lib/lib/interfaces/iStartupConfig', () => ({
@@ -210,6 +210,34 @@ describe('Logic Service', () => {
           }),
         }),
       );
+    });
+
+    it('should collapse an unexpected getRuleConfig error (e.g. ZodError) to a concise reason ', async () => {
+      const zodLikeError = new Error(
+        'ZodError: [\n  {\n    "expected": "number",\n    "code": "invalid_type",\n    "path": [ "config", "parameters", "maxQueryRange" ],\n    "message": "Invalid input: expected number, received undefined"\n  }\n]',
+      );
+
+      jest.spyOn(databaseManager, 'getRuleConfig').mockImplementationOnce(async (): Promise<RuleConfig> => {
+        throw zodLikeError;
+      });
+
+      const expectedReq = getMockRequest();
+
+      responseSpy = jest.spyOn(server, 'handleResponse').mockImplementationOnce(jest.fn());
+
+      await execute(expectedReq);
+
+      expect(responseSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ruleResult: expect.objectContaining({
+            subRuleRef: '.err',
+            reason: 'Error while getting rule configuration',
+          }),
+        }),
+      );
+      // The verbose underlying message must not leak onto the wire.
+      const call = responseSpy.mock.calls[0][0] as { ruleResult: RuleResult };
+      expect(call.ruleResult.reason).not.toContain('ZodError');
     });
 
     it('should fail if unable to parse - missing properties ', async () => {
