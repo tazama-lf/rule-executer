@@ -34,7 +34,7 @@
     "tslib": "^2.8.1"
   },
   "devDependencies": {
-    "@eslint-community/eslint-plugin-eslint-comments": "^4.5.0",
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.7.2",
     "@stylistic/eslint-plugin": "^5.6.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.10.1",
