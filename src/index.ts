@@ -5,7 +5,8 @@ import { LoggerService, type DatabaseManagerInstance } from '@tazama-lf/frms-coe
 import { Database } from '@tazama-lf/frms-coe-lib/lib/config/database.config';
 import { validateProcessorConfig } from '@tazama-lf/frms-coe-lib/lib/config/processor.config';
 import { Cache } from '@tazama-lf/frms-coe-lib/lib/config/redis.config';
-import { CreateStorageManager } from '@tazama-lf/frms-coe-lib/lib/services/dbManager';
+import { CreateStorageManager, type DatabaseManagerHooks } from '@tazama-lf/frms-coe-lib/lib/services/dbManager';
+import type { RuleConfig } from '@tazama-lf/frms-coe-lib/lib/interfaces';
 import { StartupFactory, type IStartupService } from '@tazama-lf/frms-coe-startup-lib';
 import cluster from 'node:cluster';
 import os from 'node:os';
@@ -13,6 +14,8 @@ import * as util from 'node:util';
 import { setTimeout } from 'node:timers/promises';
 import { additionalEnvironmentVariables, type Configuration } from './config';
 import { execute } from './controllers/execute';
+import { checkRuleIdentity } from './helpers/checkRuleIdentity';
+import * as ruleModule from 'rule/lib';
 
 let configuration = validateProcessorConfig(additionalEnvironmentVariables) as Configuration;
 
@@ -26,24 +29,26 @@ const runServer = async (): Promise<void> => {
   server = new StartupFactory();
   if (configuration.nodeEnv !== 'test') {
     let isConnected = false;
-    for (let retryCount = 0; retryCount < 10; retryCount++) {
+    /* eslint-disable no-await-in-loop -- retry logic */
+    for (let retryCount = 0; retryCount < 10; retryCount += 1) {
       loggerService.log('Connecting to nats server...', logContext, configuration.functionName);
       if (
-        !(await server.init(
+        await server.init(
           execute,
           loggerService,
           [`sub-rule-${configuration.RULE_NAME}@${configuration.RULE_VERSION}`],
           `pub-rule-${configuration.RULE_NAME}@${configuration.RULE_VERSION}`,
-        ))
+        )
       ) {
-        loggerService.warn(`Unable to connect, retry count: ${retryCount}`, logContext, configuration.functionName);
-        await setTimeout(5000);
-      } else {
         loggerService.log('Connected to nats', logContext, configuration.functionName);
         isConnected = true;
         break;
+      } else {
+        loggerService.warn(`Unable to connect, retry count: ${retryCount}`, logContext, configuration.functionName);
+        await setTimeout(5000);
       }
     }
+    /* eslint-enable no-await-in-loop */
 
     if (!isConnected) {
       throw new Error('Unable to connect to nats after 10 retries');
@@ -54,9 +59,14 @@ const numCPUs = os.cpus().length > configuration.maxCPU ? configuration.maxCPU +
 
 export const initializeDB = async (): Promise<void> => {
   const auth = configuration.nodeEnv === 'production';
+  const validateConfigCandidate = (ruleModule as { validateConfig?: unknown }).validateConfig;
+  const validateConfig =
+    typeof validateConfigCandidate === 'function' ? (validateConfigCandidate as (config: RuleConfig) => void) : undefined;
+  const hooks: DatabaseManagerHooks | undefined = validateConfig ? { onConfigLoaded: validateConfig } : undefined;
   const { config, db } = await CreateStorageManager<Configuration>(
     [Database.CONFIGURATION, Database.EVENT_HISTORY, Database.RAW_HISTORY, Cache.LOCAL],
     auth,
+    hooks,
   );
   databaseManager = db;
   configuration = { ...configuration, ...config };
@@ -71,11 +81,22 @@ process.on('unhandledRejection', (err) => {
   loggerService.error(`process on unhandledRejection error: ${util.inspect(err)}`, logContext, configuration.functionName);
 });
 
+// Verify that the installed rule module matches the expected container identity.
+// This runs once before the cluster split so the process exits immediately on mismatch.
+try {
+  checkRuleIdentity(ruleModule, configuration.RULE_NAME, (msg) => {
+    loggerService.warn(msg, logContext, configuration.functionName);
+  });
+} catch (err) {
+  loggerService.error('Rule module identity check failed - aborting startup', util.inspect(err), logContext, configuration.functionName);
+  process.exit(1);
+}
+
 if (cluster.isPrimary && configuration.maxCPU !== 1) {
   loggerService.log(`Primary ${process.pid} is running`);
 
   // Fork workers.
-  for (let i = 1; i < numCPUs; i++) {
+  for (let i = 1; i < numCPUs; i += 1) {
     cluster.fork();
   }
 
@@ -83,18 +104,16 @@ if (cluster.isPrimary && configuration.maxCPU !== 1) {
     loggerService.log(`worker ${Number(worker.process.pid)} died, starting another worker`);
     cluster.fork();
   });
-} else {
-  if (process.env.NODE_ENV !== 'test') {
-    (async () => {
-      try {
-        await initializeDB();
-        await runServer();
-      } catch (err) {
-        loggerService.error('Error while starting services', util.inspect(err), logContext, configuration.functionName);
-        process.exit(1);
-      }
-    })();
-  }
+} else if (process.env.NODE_ENV !== 'test') {
+  (async () => {
+    try {
+      await initializeDB();
+      await runServer();
+    } catch (err) {
+      loggerService.error('Error while starting services', util.inspect(err), logContext, configuration.functionName);
+      process.exit(1);
+    }
+  })();
 }
 
 export { configuration, databaseManager, runServer };

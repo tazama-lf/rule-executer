@@ -83,10 +83,15 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     spanRuleConfig?.end();
     loggerService.error('Error while getting rule configuration', util.inspect(error), context, configuration.functionName);
     ruleRes.prcgTm = calculateDuration(startTime);
+    // The full error detail is retained in the log above. On the wire we surface the concise,
+    // known guard reasons as-is, but collapse any other failure (e.g. a config validation/DB
+    // error such as a ZodError) to a generic reason rather than leaking the full message.
+    const knownGuardReasons = ['Rule not found in network map', 'Rule processor configuration not retrievable'];
+    const rawReason = (error as Error).message;
     ruleRes = {
       ...ruleRes,
       subRuleRef: '.err',
-      reason: (error as Error).message,
+      reason: knownGuardReasons.includes(rawReason) ? rawReason : 'Error while getting rule configuration',
     };
     const spanHandleResponse = apm.startSpan(`handleResponse.${ruleRes.id}.err`);
     await server.handleResponse({
