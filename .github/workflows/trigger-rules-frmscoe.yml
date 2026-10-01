@@ -1,14 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
 
-# Rebuilds the tazama-lf rule rc images after a rule-executer change by running
+# Rebuilds the frmscoe rule rc images after a rule-executer change by running
 # each rule's package-rule-rc.yml on its dev branch (workflow_dispatch, ref: dev).
-# A repository_dispatch would run on the rule repo's default branch (main) and
-# read main's stable version, which fails the rc prerelease check.
+#
+# The rule repos come from the tazama-lf organization variable FRMSCOE_RULES
+# (comma-separated repo names, for example "rule-001,rule-002").
+# Kept separate from trigger-rules-901-and-902.yml so it can be disabled while a
+# rule-executer change is tested on the public rules first.
 #
 # GitHub only accepts the dispatch if the rule repo's default branch has a
 # package-rule-rc.yml with a workflow_dispatch trigger.
 
-name: Trigger Rule 901 and 902 Workflows after rule executer repo is updated
+name: Trigger frmscoe rule rc workflows after rule executer repo is updated
 
 on:
   push:
@@ -23,12 +26,17 @@ jobs:
     steps:
       - name: Run package-rule-rc.yml on dev in each rule repo
         env:
-          GH_TOKEN: ${{ secrets.BOT_TOKEN_TAZAMA_LF }}  # needs Actions: write on each rule repo
-          RULE_ORG: tazama-lf
-          RULE_REPOS: rule-901,rule-902
+          GH_TOKEN: ${{ secrets.BOT_TOKEN_FRMSCOE }}  # needs Actions: write on each rule repo
+          RULE_ORG: frmscoe
+          RULE_REPOS: ${{ vars.FRMSCOE_RULES }}
         shell: bash
         run: |
           set -uo pipefail
+
+          if [ -z "$(tr -d '[:space:],' <<< "${RULE_REPOS:-}")" ]; then
+            echo "::error::The FRMSCOE_RULES organization variable is empty or not set."
+            exit 1
+          fi
 
           failed=()
           IFS=',' read -ra repos <<< "$RULE_REPOS"
@@ -38,7 +46,7 @@ jobs:
             repo="$(tr -d '[:space:]' <<< "$raw")"
             [ -z "$repo" ] && continue
             if [[ ! "$repo" =~ ^rule-[0-9]{3}$ ]]; then
-              echo "::error::Skipping an entry that is not a rule-NNN repo name."
+              echo "::error::Skipping an FRMSCOE_RULES entry that is not a rule-NNN repo name."
               failed+=("\`${repo}\` (not a rule-NNN repo name)")
               continue
             fi
