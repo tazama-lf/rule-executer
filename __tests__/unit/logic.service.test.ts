@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
+import { Database } from '@tazama-lf/frms-coe-lib/lib/config/database.config';
 import { NetworkMap, RuleConfig, RuleRequest, RuleResult } from '@tazama-lf/frms-coe-lib/lib/interfaces';
+import { CreateStorageManager } from '@tazama-lf/frms-coe-lib/lib/services/dbManager';
 import { DataCacheSample, NetworkMapSample, Pacs002Sample } from '@tazama-lf/frms-coe-lib/lib/tests/data';
 import * as ruleLogic from 'rule/lib';
 import { configuration, databaseManager, initializeDB, runServer, server } from '../../src';
@@ -402,6 +404,35 @@ describe('Logic Service', () => {
       } catch (err) {
         expect(err).toEqual(new Error('Value provided undefined, so cannot determine rule outcome'));
       }
+    });
+  });
+
+  describe('initializeDB', () => {
+    beforeEach(() => {
+      jest.mocked(CreateStorageManager).mockResolvedValue({
+        config: {},
+        db: { isReadyCheck: jest.fn() },
+      } as unknown as Awaited<ReturnType<typeof CreateStorageManager>>);
+    });
+
+    afterEach(() => {
+      configuration.ENRICHMENT_ENABLED = '';
+    });
+
+    it('should not connect the enrichment database when ENRICHMENT_ENABLED is not set', async () => {
+      await initializeDB();
+
+      const storages = jest.mocked(CreateStorageManager).mock.lastCall?.[0];
+      expect(storages).not.toContain(Database.ENRICHMENT);
+    });
+
+    it('should connect the enrichment database when ENRICHMENT_ENABLED is true', async () => {
+      configuration.ENRICHMENT_ENABLED = true;
+
+      await initializeDB();
+
+      const storages = jest.mocked(CreateStorageManager).mock.lastCall?.[0];
+      expect(storages).toContain(Database.ENRICHMENT);
     });
   });
 });
