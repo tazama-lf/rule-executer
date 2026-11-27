@@ -55,7 +55,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     indpdntVarbl: 0,
   };
 
-  context = ruleRes.id;
+  context = `${ruleRes.id} tenant=${ruleRes.tenantId}`;
 
   ruleRes.cfg = (() => {
     for (const messages of request.networkMap.messages) {
@@ -131,7 +131,7 @@ export const execute = async (reqObj: unknown): Promise<void> => {
     }
     // happy path, we don't need reason
     if (ruleRes.reason) {
-      loggerService.log(ruleRes.reason, context);
+      loggerService.log(`${ruleRes.subRuleRef} ${ruleRes.reason}`, context);
     }
     if (ruleRes.subRuleRef !== '.err') {
       // happy path, we don't need reason
